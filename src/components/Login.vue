@@ -46,7 +46,8 @@ export default {
         });
         if (response.data.code === 200 && response.data.token) {
           localStorage.setItem('authToken', response.data.token);
-          alert('登录成功！');
+          // 【修改】使用路由跳转到主页
+          this.$router.push('/');
         } else {
           this.errorMessage = response.data.message || '登录失败，请重试。';
         }
