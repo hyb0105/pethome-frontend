@@ -1,12 +1,13 @@
 import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
-// 【第1处修改】从我们创建的 router.js 文件中导入路由实例
-import router from './router'
+import router from './router' // 导入路由
 
-createApp(App).mount('#app')
-const app = createApp(App);
-// 【第2处修改】在挂载应用之前，告诉Vue实例去使用我们导入的路由
+// 只创建一次App实例
+const app = createApp(App)
+
+// 在挂载之前，先使用路由
 app.use(router)
 
+// 最后，将配置好的App挂载到页面上
 app.mount('#app')

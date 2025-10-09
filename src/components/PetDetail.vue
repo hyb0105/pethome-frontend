@@ -17,17 +17,45 @@
         </div>
         <p class="description"><strong>描述:</strong> {{ pet.description }}</p>
         <div class="actions">
-          <button class="apply-btn">申请领养</button>
+          <button class="apply-btn" @click="showApplicationModal">申请领养</button>
           <router-link to="/" class="back-link">返回主页</router-link>
         </div>
       </div>
     </div>
+
+    <div v-if="isModalVisible" class="modal-overlay">
+      <div class="modal-content">
+        <h3>领养申请: {{ pet.name }}</h3>
+        <form @submit.prevent="submitApplication">
+          <div class="form-group">
+            <label for="adopterName">您的姓名</label>
+            <input id="adopterName" v-model="applicationForm.adopterName" type="text" required>
+          </div>
+          <div class="form-group">
+            <label for="adopterPhone">联系电话</label>
+            <input id="adopterPhone" v-model="applicationForm.adopterPhone" type="tel" required>
+          </div>
+          <div class="form-group">
+            <label for="reason">申请理由</label>
+            <textarea id="reason" v-model="applicationForm.reason" rows="4" required></textarea>
+          </div>
+          <p v-if="formError" class="error-message">{{ formError }}</p>
+          <div class="modal-actions">
+            <button type="submit" :disabled="isSubmitting">
+              {{ isSubmitting ? '提交中...' : '确认提交' }}
+            </button>
+            <button type="button" @click="closeApplicationModal" class="cancel-btn">取消</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script>
 import axios from 'axios';
-import defaultPetImage from '@/assets/test-cat.jpg'; // 复用我们的默认图片
+import defaultPetImage from '@/assets/test-cat.jpg';
 
 export default {
   name: 'PetDetail',
@@ -37,11 +65,9 @@ export default {
       loading: true,
       error: null,
       defaultPetImage: defaultPetImage,
-
-      // 【新增】与弹窗和表单相关的数据
-      isModalVisible: false, // 控制弹窗是否显示
-      isSubmitting: false, // 控制提交按钮状态，防止重复提交
-      formError: '', // 用于显示表单的错误信息
+      isModalVisible: false,
+      isSubmitting: false,
+      formError: '',
       applicationForm: {
         adopterName: '',
         adopterPhone: '',
@@ -50,14 +76,12 @@ export default {
     };
   },
   async created() {
-    const petId = this.$route.params.id; // 从URL中获取宠物ID
+    const petId = this.$route.params.id;
     if (!petId) {
       this.error = "未找到宠物ID";
       this.loading = false;
       return;
     }
-
-
     try {
       const response = await axios.get(`http://localhost:8080/api/pets/${petId}`);
       this.pet = response.data;
@@ -69,31 +93,24 @@ export default {
     }
   },
   methods: {
-    // 【新增】显示弹窗的方法
     showApplicationModal() {
-      // 【在这里新增一行日志代码】
-      // ======================================================
       console.log('“申请领养”按钮被点击了！');
       this.isModalVisible = true;
     },
-    // 【新增】关闭弹窗的方法
     closeApplicationModal() {
       this.isModalVisible = false;
-      this.formError = ''; // 关闭时清空错误信息
+      this.formError = '';
     },
-    // 【新增】提交申请的方法
     async submitApplication() {
       this.isSubmitting = true;
       this.formError = '';
       const token = localStorage.getItem('authToken');
-
       if (!token) {
         this.formError = '请先登录再提交申请！';
         this.isSubmitting = false;
         this.$router.push('/login');
         return;
       }
-
       try {
         const payload = {
           petId: this.pet.id,
@@ -101,17 +118,11 @@ export default {
           adopterPhone: this.applicationForm.adopterPhone,
           reason: this.applicationForm.reason,
         };
-
         await axios.post('http://localhost:8080/api/applications', payload, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-
         alert('您的领养申请已成功提交！');
         this.closeApplicationModal();
-        // 提交成功后可以考虑跳转到“我的申请”页面，或者刷新当前页面状态
-        // this.$router.push('/my-applications');
       } catch (err) {
         console.error('申请提交失败:', err);
         this.formError = '提交失败，可能该宠物已被申请或服务器出错。';
