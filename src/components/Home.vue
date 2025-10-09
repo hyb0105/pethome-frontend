@@ -10,15 +10,17 @@
     <div v-if="error" class="error">{{ error }}</div>
 
     <div class="pet-list" v-if="!loading && pets.length > 0">
-      <div v-for="pet in pets" :key="pet.id" class="pet-card">
-        <img :src="pet.photoUrl || 'https://via.placeholder.com/300'" :alt="pet.name" class="pet-photo">
-        <div class="pet-info">
-          <h3>{{ pet.name }}</h3>
-          <p><strong>品种:</strong> {{ pet.breed }} ({{ pet.type }})</p>
-          <p><strong>年龄:</strong> {{ pet.age }} 岁</p>
-          <p><strong>创建时间:</strong> {{ new Date(pet.createTime).toLocaleDateString() }}</p>
+      <router-link :to="`/pet/${pet.id}`" v-for="pet in pets" :key="pet.id" class="pet-card-link">
+        <div class="pet-card">
+          <img :src="pet.photoUrl || defaultPetImage" :alt="pet.name" class="pet-photo">
+          <div class="pet-info">
+            <h3>{{ pet.name }}</h3>
+            <p><strong>品种:</strong> {{ pet.breed }} ({{ pet.type }})</p>
+            <p><strong>年龄:</strong> {{ pet.age }} 岁</p>
+            <p><strong>创建时间:</strong> {{ new Date(pet.createTime).toLocaleDateString() }}</p>
+          </div>
         </div>
-      </div>
+      </router-link>
     </div>
 
     <div class="pagination">
@@ -32,6 +34,7 @@
 <script>
 import axios from 'axios';
 
+import defaultPetImage from '@/assets/test-cat.jpg'; // @符号代表 'src' 目录
 export default {
   name: 'HomePage',
   data() {
@@ -44,6 +47,8 @@ export default {
         pageSize: 6, // 每页显示6个宠物
       },
       total: 0,
+      // 【新增】将导入的图片放入data，使其在template中可用
+      defaultPetImage: defaultPetImage,
     };
   },
   computed: {
@@ -142,5 +147,9 @@ export default {
 .pagination button {
   margin: 0 10px;
   padding: 5px 10px;
+}
+.pet-card-link {
+  text-decoration: none; /* 移除链接的下划线 */
+  color: inherit; /* 继承父元素的颜色 */
 }
 </style>

@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Login from './components/Login.vue';
 import Home from './components/Home.vue';
+import PetDetail from './components/PetDetail.vue'; // 【新增】导入详情页组件
 
 const routes = [
     {
@@ -13,6 +14,12 @@ const routes = [
         name: 'Home',
         component: Home,
         meta: { requiresAuth: true } // 添加一个元字段，表示这个页面需要登录
+    },
+    {
+        path: '/pet/:id', // :id 是一个动态参数，它会匹配/pet/1, /pet/2 等
+        name: 'PetDetail',
+        component: PetDetail,
+        meta: { requiresAuth: true }
     }
 ];
 
