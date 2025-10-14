@@ -6,6 +6,8 @@ import PetDetail from './components/PetDetail.vue'; // 【新增】导入详情�
 import MyApplications from './components/MyApplications.vue';
 // 【新增】导入后台管理页面组件
 import Admin from './components/Admin.vue';
+// 【新增】导入宠物管理页面
+import AdminPetManagement from './components/AdminPetManagement.vue';
 
 const routes = [
     {
@@ -36,6 +38,19 @@ const routes = [
         name: 'Admin',
         component: Admin,
         meta: { requiresAuth: true, requiresAdmin: true } // 表示需要登录且需要管理员权限
+    },
+    {
+        path: '/admin',
+        name: 'Admin',
+        component: Admin, // 这是审批申请页面
+        meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    // 【新增】为宠物管理页面添加新路由
+    {
+        path: '/admin/pets',
+        name: 'AdminPetManagement',
+        component: AdminPetManagement,
+        meta: { requiresAuth: true, requiresAdmin: true }
     }
 ];
 

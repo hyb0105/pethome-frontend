@@ -5,7 +5,11 @@
       <div class="navbar-links">
         <router-link to="/" class="nav-link">主页</router-link>
         <router-link to="/my-applications" class="nav-link">我的申请</router-link>
-        <router-link v-if="isAdmin" to="/admin" class="nav-link admin-link">后台管理</router-link>
+
+        <div v-if="isAdmin" class="admin-links">
+          <router-link to="/admin" class="nav-link admin-link">申请审批</router-link>
+          <router-link to="/admin/pets" class="nav-link admin-link">宠物管理</router-link>
+        </div>
       </div>
       <div class="navbar-actions">
         <button @click="logout" class="logout-btn">退出登录</button>
@@ -82,5 +86,12 @@ export default {
 .admin-link {
   color: #ffc107;
   font-weight: bold;
+}
+.admin-links {
+  display: flex;
+  gap: 10px;
+  margin-left: 20px; /* 与普通链接隔开一点距离 */
+  border-left: 1px solid #ddd;
+  padding-left: 20px;
 }
 </style>
