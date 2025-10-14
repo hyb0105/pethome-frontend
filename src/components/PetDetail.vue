@@ -69,7 +69,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import defaultPetImage from '@/assets/test-cat.jpg';
@@ -88,6 +88,12 @@ const applicationForm = ref({
   adopterName: '',
   adopterPhone: '',
   reason: ''
+});
+// ======================================================
+// 【新增】一个计算属性，用来判断当前用户是否是管理员
+// ======================================================
+const isAdmin = computed(() => {
+  return localStorage.getItem('userRole') === '1';
 });
 
 onMounted(async () => {

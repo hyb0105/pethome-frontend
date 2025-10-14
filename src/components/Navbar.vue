@@ -10,7 +10,7 @@
     <div class="flex-grow" />
 
     <el-menu-item index="/">主页</el-menu-item>
-    <el-menu-item index="/my-applications">我的申请</el-menu-item>
+    <el-menu-item v-if="!isAdmin" index="/my-applications">我的申请</el-menu-item>
     <el-menu-item index="/profile">个人中心</el-menu-item>
 
     <el-sub-menu v-if="isAdmin" index="/admin">
