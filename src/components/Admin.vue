@@ -46,9 +46,25 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 
 const applications = ref([]);
 const loading = ref(true);
+const error = ref(null);
 
+// 【修改】直接在顶层定义 fetchAllApplications 方法
 const fetchAllApplications = async () => {
-  // ... fetchAllApplications 方法逻辑与之前相同 ...
+  loading.value = true;
+  error.value = null;
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await axios.get('http://localhost:8080/api/applications', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    applications.value = response.data;
+  } catch (err) {
+    console.error("加载所有申请列表失败:", err);
+    error.value = '加载申请列表失败，请确认您有管理员权限。';
+    ElMessage.error(error.value);
+  } finally {
+    loading.value = false;
+  }
 };
 
 const handleApproval = async (applicationId, status) => {
@@ -64,23 +80,52 @@ const handleApproval = async (applicationId, status) => {
         }
     );
 
-    const token = localStorage.getItem('authToken');
-    await axios.put(`http://localhost:8080/api/applications/${applicationId}/status`,
-        { status },
-        { headers: { 'Authorization': `Bearer ${token}` } }
-    );
-    ElMessage.success(`申请 #${applicationId} 已成功${action}！`);
-    await fetchAllApplications();
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('审批操作失败！');
-    }
-  }
-};
+    const handleApproval = async (applicationId, status) => {
+      const action = status === 1 ? '批准' : '拒绝';
+      try {
+        await ElMessageBox.confirm(
+            `您确定要“${action}”这个申请吗？`,
+            '确认操作',
+            {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning',
+            }
+        );
 
-// ... formatStatus 和 getStatusType 方法与上面 MyApplications.vue 中的相同 ...
-const formatStatus = (status) => { /* ... */ };
-const getStatusType = (status) => { /* ... */ };
+
+        const token = localStorage.getItem('authToken');
+        await axios.put(`http://localhost:8080/api/applications/${applicationId}/status`,
+            { status },
+            { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+        ElMessage.success(`申请 #${applicationId} 已成功${action}！`);
+        await fetchAllApplications(); // 刷新列表
+      } catch (error) {
+        if (error !== 'cancel') {
+          ElMessage.error('审批操作失败！');
+        }
+      }
+    };
+
+// 【修改】直接在顶层定义 formatStatus 和 getStatusType 方法
+    const formatStatus = (status) => {
+      switch (status) {
+        case 0: return '待审核';
+        case 1: return '已通过';
+        case 2: return '已拒绝';
+        default: return '未知';
+      }
+    };
+
+    const getStatusType = (status) => {
+      switch (status) {
+        case 0: return 'warning';
+        case 1: return 'success';
+        case 2: return 'danger';
+        default: return 'info';
+      }
+    };
 
 onMounted(fetchAllApplications);
 
