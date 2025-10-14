@@ -1,246 +1,140 @@
 <template>
-  <div class="detail-container">
-    <div v-if="loading" class="loading">正在加载宠物信息...</div>
-    <div v-if="error" class="error">{{ error }}</div>
-    <div v-if="pet" class="pet-detail-card">
-      <img :src="pet.photoUrl || defaultPetImage" :alt="pet.name" class="pet-photo-large">
-      <div class="pet-info-large">
-        <h1>{{ pet.name }}</h1>
-        <div class="info-grid">
-          <p><strong>类型:</strong> {{ pet.type }}</p>
-          <p><strong>品种:</strong> {{ pet.breed }}</p>
-          <p><strong>年龄:</strong> {{ pet.age }} 岁</p>
-          <p><strong>性别:</strong> {{ pet.gender === 1 ? '雄性' : '雌性' }}</p>
-          <p><strong>健康状况:</strong> {{ pet.healthStatus }}</p>
-          <p><strong>疫苗情况:</strong> {{ pet.vaccination }}</p>
-          <p><strong>是否绝育:</strong> {{ pet.sterilization === 1 ? '是' : '否' }}</p>
+  <div class="page-container">
+    <el-skeleton :loading="loading" animated>
+      <template #template>
+        <div class="skeleton-container">
+          <el-skeleton-item variant="image" class="skeleton-img" />
+          <div class="skeleton-info">
+            <el-skeleton-item variant="p" style="width: 50%" />
+            <el-skeleton :rows="5" />
+          </div>
         </div>
-        <p class="description"><strong>描述:</strong> {{ pet.description }}</p>
-        <div class="actions">
-          <button class="apply-btn" @click="showApplicationModal">申请领养</button>
-          <router-link to="/" class="back-link">返回主页</router-link>
-        </div>
-      </div>
-    </div>
+      </template>
+      <template #default>
+        <el-card v-if="pet" class="pet-detail-card">
+          <el-row :gutter="20">
+            <el-col :span="10">
+              <el-image :src="pet.photoUrl || defaultPetImage" fit="cover" class="pet-photo-large" />
+            </el-col>
+            <el-col :span="14">
+              <div class="pet-info-large">
+                <h1>{{ pet.name }}</h1>
+                <p class="description">{{ pet.description }}</p>
+                <el-descriptions :column="2" border class="info-grid">
+                  <el-descriptions-item label="类型">{{ pet.type }}</el-descriptions-item>
+                  <el-descriptions-item label="品种">{{ pet.breed }}</el-descriptions-item>
+                  <el-descriptions-item label="年龄">{{ pet.age }} 岁</el-descriptions-item>
+                  <el-descriptions-item label="性别">
+                    <el-tag size="small">{{ pet.gender === 1 ? '雄性' : '雌性' }}</el-tag>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="健康状况">{{ pet.healthStatus }}</el-descriptions-item>
+                  <el-descriptions-item label="疫苗情况">{{ pet.vaccination }}</el-descriptions-item>
+                  <el-descriptions-item label="是否绝育">
+                    <el-tag :type="pet.sterilization === 1 ? 'success' : 'info'" size="small">
+                      {{ pet.sterilization === 1 ? '是' : '否' }}
+                    </el-tag>
+                  </el-descriptions-item>
+                </el-descriptions>
+                <div class="actions">
+                  <el-button type="success" size="large" @click="isModalVisible = true">申请领养</el-button>
+                  <el-button size="large" @click="$router.push('/')">返回主页</el-button>
+                </div>
+              </div>
+            </el-col>
+          </el-row>
+        </el-card>
+      </template>
+    </el-skeleton>
 
-    <div v-if="isModalVisible" class="modal-overlay">
-      <div class="modal-content">
-        <h3>领养申请: {{ pet.name }}</h3>
-        <form @submit.prevent="submitApplication">
-          <div class="form-group">
-            <label for="adopterName">您的姓名</label>
-            <input id="adopterName" v-model="applicationForm.adopterName" type="text" required>
-          </div>
-          <div class="form-group">
-            <label for="adopterPhone">联系电话</label>
-            <input id="adopterPhone" v-model="applicationForm.adopterPhone" type="tel" required>
-          </div>
-          <div class="form-group">
-            <label for="reason">申请理由</label>
-            <textarea id="reason" v-model="applicationForm.reason" rows="4" required></textarea>
-          </div>
-          <p v-if="formError" class="error-message">{{ formError }}</p>
-          <div class="modal-actions">
-            <button type="submit" :disabled="isSubmitting">
-              {{ isSubmitting ? '提交中...' : '确认提交' }}
-            </button>
-            <button type="button" @click="closeApplicationModal" class="cancel-btn">取消</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
+    <el-dialog v-model="isModalVisible" title="领养申请" width="500px">
+      <el-form :model="applicationForm" label-position="top">
+        <el-form-item label="您的姓名" required>
+          <el-input v-model="applicationForm.adopterName" />
+        </el-form-item>
+        <el-form-item label="联系电话" required>
+          <el-input v-model="applicationForm.adopterPhone" />
+        </el-form-item>
+        <el-form-item label="申请理由" required>
+          <el-input v-model="applicationForm.reason" type="textarea" :rows="4" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="isModalVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitApplication" :loading="isSubmitting">
+          {{ isSubmitting ? '提交中...' : '确认提交' }}
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import defaultPetImage from '@/assets/test-cat.jpg';
+import { ElMessage } from 'element-plus';
 
-export default {
-  name: 'PetDetail',
-  data() {
-    return {
-      pet: null,
-      loading: true,
-      error: null,
-      defaultPetImage: defaultPetImage,
-      isModalVisible: false,
-      isSubmitting: false,
-      formError: '',
-      applicationForm: {
-        adopterName: '',
-        adopterPhone: '',
-        reason: ''
-      }
+const route = useRoute();
+const router = useRouter();
+
+const pet = ref(null);
+const loading = ref(true);
+const error = ref(null);
+
+const isModalVisible = ref(false);
+const isSubmitting = ref(false);
+const applicationForm = ref({
+  adopterName: '',
+  adopterPhone: '',
+  reason: ''
+});
+
+onMounted(async () => {
+  const petId = route.params.id;
+  if (!petId) {
+    error.value = "未找到宠物ID";
+    loading.value = false;
+    return;
+  }
+  try {
+    const response = await axios.get(`http://localhost:8080/api/pets/${petId}`);
+    pet.value = response.data;
+  } catch (err) {
+    error.value = '无法加载宠物详情。';
+    ElMessage.error(error.value);
+  } finally {
+    loading.value = false;
+  }
+});
+
+const submitApplication = async () => {
+  isSubmitting.value = true;
+  try {
+    const token = localStorage.getItem('authToken');
+    const payload = {
+      petId: pet.value.id,
+      ...applicationForm.value,
     };
-  },
-  async created() {
-    const petId = this.$route.params.id;
-    if (!petId) {
-      this.error = "未找到宠物ID";
-      this.loading = false;
-      return;
-    }
-    try {
-      const response = await axios.get(`http://localhost:8080/api/pets/${petId}`);
-      this.pet = response.data;
-    } catch (err) {
-      console.error('获取宠物详情失败:', err);
-      this.error = '无法加载宠物详情，请检查ID是否正确。';
-    } finally {
-      this.loading = false;
-    }
-  },
-  methods: {
-    showApplicationModal() {
-      console.log('“申请领养”按钮被点击了！');
-      this.isModalVisible = true;
-    },
-    closeApplicationModal() {
-      this.isModalVisible = false;
-      this.formError = '';
-    },
-    async submitApplication() {
-      this.isSubmitting = true;
-      this.formError = '';
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        this.formError = '请先登录再提交申请！';
-        this.isSubmitting = false;
-        this.$router.push('/login');
-        return;
-      }
-      try {
-        const payload = {
-          petId: this.pet.id,
-          adopterName: this.applicationForm.adopterName,
-          adopterPhone: this.applicationForm.adopterPhone,
-          reason: this.applicationForm.reason,
-        };
-        await axios.post('http://localhost:8080/api/applications', payload, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        alert('您的领养申请已成功提交！');
-        this.closeApplicationModal();
-      } catch (err) {
-        console.error('申请提交失败:', err);
-        this.formError = '提交失败，可能该宠物已被申请或服务器出错。';
-      } finally {
-        this.isSubmitting = false;
-      }
-    }
+    await axios.post('http://localhost:8080/api/applications', payload, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    ElMessage.success('您的领养申请已成功提交！');
+    isModalVisible.value = false;
+  } catch (err) {
+    ElMessage.error('提交失败，可能该宠物已被申请或服务器出错。');
+  } finally {
+    isSubmitting.value = false;
   }
 };
 </script>
 
 <style scoped>
-.detail-container {
-  max-width: 900px;
-  margin: 40px auto;
-  padding: 20px;
-}
-.pet-detail-card {
-  display: flex;
-  gap: 30px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  overflow: hidden;
-}
-.pet-photo-large {
-  width: 400px;
-  height: 400px;
-  object-fit: cover;
-}
-.pet-info-large {
-  padding: 20px;
-  flex: 1;
-}
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin: 20px 0;
-}
-.description {
-  margin-top: 20px;
-}
-.actions {
-  margin-top: 30px;
-}
-.apply-btn {
-  padding: 10px 20px;
-  font-size: 16px;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-.back-link {
-  margin-left: 20px;
-  color: #007bff;
-}
-/* ====================================================== */
-/* 【新增】弹窗相关的样式                                     */
-/* ====================================================== */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-.modal-content {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  width: 400px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-.modal-content h3 {
-  margin-top: 0;
-  text-align: center;
-}
-.form-group {
-  margin-bottom: 15px;
-}
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-}
-.form-group input,
-.form-group textarea {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-}
-.modal-actions button {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.modal-actions .cancel-btn {
-  background-color: #6c757d;
-  color: white;
-}
-.error-message {
-  color: red;
-  font-size: 0.9em;
-  text-align: center;
-}
+.page-container { max-width: 1000px; margin: 20px auto; padding: 20px; }
+.pet-photo-large { width: 100%; height: 400px; border-radius: 8px; }
+.description { color: #666; margin-bottom: 20px; }
+.actions { margin-top: 20px; }
+.skeleton-container { display: flex; gap: 20px; }
+.skeleton-img { width: 400px; height: 400px; }
+.skeleton-info { flex: 1; }
 </style>
