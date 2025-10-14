@@ -8,12 +8,21 @@ import MyApplications from './components/MyApplications.vue';
 import Admin from './components/Admin.vue';
 // 【新增】导入宠物管理页面
 import AdminPetManagement from './components/AdminPetManagement.vue';
+// 【新增】导入注册页面组件
+import Register from './components/Register.vue';
+// 【新增】导入个人中心页面组件
+import UserProfile from './components/UserProfile.vue';
 
 const routes = [
     {
         path: '/login',
         name: 'Login',
         component: Login
+    },
+    {
+        path: '/register',
+        name: 'Register',
+        component: Register
     },
     {
         path: '/', // 将根路径'/'设置为主页
@@ -51,6 +60,13 @@ const routes = [
         name: 'AdminPetManagement',
         component: AdminPetManagement,
         meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    // 【新增】为个人中心页面添加路由
+    {
+        path: '/profile',
+        name: 'UserProfile',
+        component: UserProfile,
+        meta: { requiresAuth: true }
     }
 ];
 

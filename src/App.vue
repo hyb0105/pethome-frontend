@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <Navbar v-if="!isLoginPage" />
-    <main class="main-content">
+    <Navbar v-if="shouldShowNavbar" />
+    <main :class="{ 'main-content': shouldShowNavbar }">
       <router-view></router-view>
     </main>
   </div>
@@ -16,9 +16,10 @@ export default {
     Navbar
   },
   computed: {
-    // 计算属性，用来判断当前是否在登录页
-    isLoginPage() {
-      return this.$route.path === '/login';
+    // 【修改】更新计算属性，使其同时检查登录和注册页
+    shouldShowNavbar() {
+      const path = this.$route.path;
+      return path !== '/login' && path !== '/register';
     }
   }
 };
@@ -33,6 +34,7 @@ body {
 }
 
 .main-content {
-  padding-top: 60px; /* 防止内容被导航栏遮挡 */
+  /* 只有在显示导航栏时，才需要这个内边距 */
+  padding-top: 60px;
 }
 </style>

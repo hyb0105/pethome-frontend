@@ -1,13 +1,16 @@
 import { createApp } from 'vue'
-import './style.css'
 import App from './App.vue'
-import router from './router' // 导入路由
+import router from './router'
 
-// 只创建一次App实例
+// 【新增】导入 Element Plus 的库和样式
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
+
+import './style.css' // 您原有的全局样式可以保留
+
 const app = createApp(App)
 
-// 在挂载之前，先使用路由
 app.use(router)
+app.use(ElementPlus) // 【新增】让Vue应用使用 Element Plus
 
-// 最后，将配置好的App挂载到页面上
 app.mount('#app')
