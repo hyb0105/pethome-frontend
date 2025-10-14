@@ -20,6 +20,8 @@
 
 <script>
 import axios from 'axios';
+// 【新增】导入 jwt-decode
+import { jwtDecode } from 'jwt-decode';
 
 export default {
   name: 'UserLogin',
@@ -46,7 +48,13 @@ export default {
         });
         if (response.data.code === 200 && response.data.token) {
           localStorage.setItem('authToken', response.data.token);
+          // 【新增】解码Token
+          const decodedToken = jwtDecode(token);
           // 【修改】使用路由跳转到主页
+          // 【修改】同时保存Token和用户角色
+          localStorage.setItem('authToken', token);
+          localStorage.setItem('userRole', decodedToken.role); // 假设Token中角色的字段名为'role'
+
           this.$router.push('/');
         } else {
           this.errorMessage = response.data.message || '登录失败，请重试。';
