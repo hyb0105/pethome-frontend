@@ -18,7 +18,7 @@
           <el-input v-model="form.email" type="email" placeholder="请输入邮箱" size="large" />
         </el-form-item>
         <el-form-item label="电话">
-          <el-input v-model="form.phone" type="tel" placeholder="请输入电话号码" size="large" />
+          <el-input v-model="form.phone" type="tel" placeholder="请输入电话号码 (可选)" size="large" />
         </el-form-item>
         <el-form-item>
           <el-button type="success" @click="handleRegister" :loading="loading" class="register-button">
@@ -50,7 +50,6 @@ const form = ref({
   phone: ''
 });
 const loading = ref(false);
-const errorMessage = ref(''); // (错误信息现在由 ElMessage 处理)
 
 const handleRegister = async () => {
   if (!form.value.username || !form.value.password || !form.value.email) {

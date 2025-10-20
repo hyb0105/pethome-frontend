@@ -37,7 +37,7 @@
                   </el-descriptions-item>
                 </el-descriptions>
                 <div class="actions">
-                  <el-button type="success" size="large" @click="isModalVisible = true">申请领养</el-button>
+                  <el-button v-if="!isAdmin" type="success" size="large" @click="isModalVisible = true">申请领养</el-button>
                   <el-button size="large" @click="$router.push('/')">返回主页</el-button>
                 </div>
               </div>
@@ -70,6 +70,9 @@
 </template>
 
 <script setup>
+// ======================================================
+// 【修改】从 vue 导入 computed
+// ======================================================
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
@@ -90,6 +93,7 @@ const applicationForm = ref({
   adopterPhone: '',
   reason: ''
 });
+
 // ======================================================
 // 【新增】一个计算属性，用来判断当前用户是否是管理员
 // ======================================================
