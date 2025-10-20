@@ -76,20 +76,36 @@ const router = createRouter({
 // 【修改】升级全局路由守卫
 router.beforeEach((to, from, next) => {
     const loggedIn = localStorage.getItem('authToken');
-    const userRole = localStorage.getItem('userRole'); // 获取用户角色
+    const userRole = localStorage.getItem('userRole');
 
-    // 1. 检查页面是否需要登录
+    // 1. 【新增逻辑】如果管理员已登录
+    if (loggedIn && userRole === '1') {
+        // 访问的是登录页、注册页或主页，全部自动跳转到管理员审批页
+        if (to.path === '/login' || to.path === '/register' || to.path === '/') {
+            next('/admin/approvals');
+            return;
+        }
+    }
+
+    // 2. 【新增逻辑】如果普通用户已登录
+    if (loggedIn && userRole !== '1') {
+        // 访问的是登录页或注册页，自动跳转到主页
+        if (to.path === '/login' || to.path === '/register') {
+            next('/');
+            return;
+        }
+    }
+
+    // 3. (原逻辑) 检查页面是否需要登录
     if (to.matched.some(record => record.meta.requiresAuth) && !loggedIn) {
-        // 如果需要登录但用户未登录，跳转到登录页
         next('/login');
     }
-    // 2. 检查页面是否需要管理员权限
+    // 4. (原逻辑) 检查页面是否需要管理员权限
     else if (to.matched.some(record => record.meta.requiresAdmin) && userRole !== '1') {
-        // 如果需要管理员权限但用户不是管理员，可以跳转到主页或一个“无权限”页面
         alert('您没有权限访问此页面！');
-        next('/'); // 跳转回主页
+        next('/');
     }
-    // 3. 如果都通过，则正常跳转
+    // 5. (原逻辑) 如果都通过，则正常跳转
     else {
         next();
     }

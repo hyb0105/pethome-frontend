@@ -75,7 +75,11 @@
 </template>
 
 <script setup>
-import { ref, watch, defineProps, defineEmits } from 'vue';
+// 【修改】从 vue 导入 computed
+import { ref, watch, defineProps, defineEmits, computed } from 'vue';
+// 【新增】导入 ElMessage 和 Plus 图标
+import { ElMessage } from 'element-plus';
+import { Plus } from '@element-plus/icons-vue';
 
 // 使用 defineProps 和 defineEmits 是 <script setup> 的标准做法
 const props = defineProps({
@@ -90,6 +94,14 @@ const emit = defineEmits(['close', 'save']);
 const form = ref({});
 const isSubmitting = ref(false);
 const isEditMode = ref(false);
+
+// 【新增】计算属性，用于设置上传组件的 Authorization 请求头
+// (这段逻辑与 UserProfile.vue 中的完全一致)
+const uploadHeaders = computed(() => {
+  return {
+    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+  };
+});
 
 const initializeForm = () => {
   isEditMode.value = props.petData && props.petData.id;
@@ -118,6 +130,31 @@ const handleSubmit = () => {
   emit('save', { pet: form.value, isEdit: isEditMode.value });
   // 提交后，isSubmitting状态需要由父组件重置或关闭弹窗时自动处理
 };
+
+// 【新增】照片上传成功后的回调
+const handlePhotoSuccess = (response) => {
+  // 假设服务器返回的数据结构为 { url: '...' }
+  // (这与 UserProfile.vue 中的逻辑一致)
+  form.value.photoUrl = response.url;
+  ElMessage.success('照片上传成功！');
+};
+
+// 【新增】照片上传前的校验
+const beforePhotoUpload = (rawFile) => {
+  // (这段逻辑与 UserProfile.vue 中的完全一致)
+  const isJpgOrPng = rawFile.type === 'image/jpeg' || rawFile.type === 'image/png';
+  if (!isJpgOrPng) {
+    ElMessage.error('照片只能是 JPG 或 PNG 格式!');
+    return false;
+  }
+  const isLt2M = rawFile.size / 1024 / 1024 < 2;
+  if (!isLt2M) {
+    ElMessage.error('照片大小不能超过 2MB!');
+    return false;
+  }
+  return true;
+};
+
 
 // 使用 watch 监听传入的 petData 变化，以便在组件复用时能正确更新表单
 watch(() => props.petData, () => {

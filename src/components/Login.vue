@@ -60,11 +60,23 @@ export default {
         if (response.data.code === 200 && response.data.token) {
           const token = response.data.token;
           const decodedToken = jwtDecode(token);
+          // 【修改】将角色保存到一个变量中
+          const userRole = decodedToken.role;
+
           localStorage.setItem('authToken', token);
-          localStorage.setItem('userRole', decodedToken.role);
+          localStorage.setItem('userRole', userRole);
 
           ElMessage.success('登录成功！');
-          this.$router.push('/');
+
+
+          if (userRole === '1') {
+            // 如果是管理员 (role '1')，跳转到审批页面
+            this.$router.push('/admin/approvals');
+          } else {
+            // 否则，跳转到主页
+            this.$router.push('/');
+          }
+
         } else {
           ElMessage.error(response.data.message || '登录失败，请重试。');
         }

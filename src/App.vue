@@ -63,14 +63,12 @@ body {
 }
 .admin-content {
   flex-grow: 1;
-  padding-left: 220px; /* 左侧菜单的宽度 */
-  /* 我们给内容区也加一点内边距，让它在el-card之外有呼吸空间 */
-  padding: 20px;
-  box-sizing: border-box; /* 确保 padding 不会撑大宽度 */
-}
 
-/* 登录/注册页的布局(如果有需要) */
-.auth-layout {
-  /* 登录和注册页自己会处理居中 */
+  /* 【【请将 padding-left 修改为 margin-left】】 */
+  /* 原代码: padding-left: 220px; */ /* */
+  margin-left: 220px; /* 改成这个 */
+
+  padding: 20px;
+  box-sizing: border-box;
 }
 </style>
