@@ -23,6 +23,7 @@
                 <el-descriptions :column="2" border class="info-grid">
                   <el-descriptions-item label="类型">{{ pet.type }}</el-descriptions-item>
                   <el-descriptions-item label="品种">{{ pet.breed }}</el-descriptions-item>
+                  <el-descriptions-item label="城市">{{ pet.city }}</el-descriptions-item>
                   <el-descriptions-item label="年龄">{{ pet.age }} 岁</el-descriptions-item>
                   <el-descriptions-item label="性别">
                     <el-tag size="small">{{ pet.gender === 1 ? '雄性' : '雌性' }}</el-tag>
