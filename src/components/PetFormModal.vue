@@ -55,8 +55,18 @@
       <el-form-item label="疫苗情况">
         <el-input v-model="form.vaccination" />
       </el-form-item>
-      <el-form-item label="照片URL">
-        <el-input v-model="form.photoUrl" placeholder="请上传图片后粘贴URL" />
+      <el-form-item label="宠物照片">
+        <el-upload
+            class="avatar-uploader"
+            action="http://localhost:8080/api/upload"
+            :headers="uploadHeaders"
+            :show-file-list="false"
+            :on-success="handlePhotoSuccess"
+            :before-upload="beforePhotoUpload"
+        >
+          <img v-if="form.photoUrl" :src="form.photoUrl" class="avatar" />
+          <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+        </el-upload>
       </el-form-item>
       <el-form-item label="描述">
         <el-input v-model="form.description" type="textarea" :rows="3" />
@@ -166,5 +176,36 @@ watch(() => props.petData, () => {
 /* 弹窗组件自带大部分样式，我们只需要微调即可 */
 .dialog-footer {
   text-align: right;
+}
+
+/* 【新增】上传组件的图片预览样式 */
+.avatar-uploader .avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+}
+</style>
+<style>
+/* 【新增】上传组件的全局样式
+  (这段逻辑与 UserProfile.vue 中的样式类似，
+   但我们将尺寸从 128px 调整为 178px)
+*/
+.avatar-uploader .el-upload {
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--el-transition-duration-fast);
+}
+.avatar-uploader .el-upload:hover {
+  border-color: var(--el-color-primary);
+}
+.el-icon.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  text-align: center;
 }
 </style>
