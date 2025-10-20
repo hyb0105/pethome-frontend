@@ -44,14 +44,12 @@ const routes = [
     },
     {
         path: '/admin',
-        name: 'Admin',
-        component: Admin,
-        meta: { requiresAuth: true, requiresAdmin: true } // 表示需要登录且需要管理员权限
+        redirect: '/admin/approvals'
     },
     {
-        path: '/admin',
-        name: 'Admin',
-        component: Admin, // 这是审批申请页面
+        path: '/admin/approvals',
+        name: 'AdminApprovals',
+        component: Admin, // Admin.vue 是审批页面
         meta: { requiresAuth: true, requiresAdmin: true }
     },
     // 【新增】为宠物管理页面添加新路由

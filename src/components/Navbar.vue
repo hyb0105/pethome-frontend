@@ -13,12 +13,6 @@
     <el-menu-item v-if="!isAdmin" index="/my-applications">我的申请</el-menu-item>
     <el-menu-item index="/profile">个人中心</el-menu-item>
 
-    <el-sub-menu v-if="isAdmin" index="/admin">
-      <template #title>后台管理</template>
-      <el-menu-item index="/admin">申请审批</el-menu-item>
-      <el-menu-item index="/admin/pets">宠物管理</el-menu-item>
-    </el-sub-menu>
-
     <el-menu-item @click="logout">退出登录</el-menu-item>
   </el-menu>
 </template>
