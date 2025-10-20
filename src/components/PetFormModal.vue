@@ -23,6 +23,11 @@
           </el-form-item>
         </el-col>
         <el-col :span="12">
+          <el-form-item label="城市" required>
+            <el-input v-model="form.city" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
           <el-form-item label="年龄" required>
             <el-input-number v-model="form.age" :min="0" style="width: 100%;" />
           </el-form-item>
@@ -95,6 +100,7 @@ const initializeForm = () => {
       name: '',
       type: '',
       breed: '',
+      city: '',
       age: 1,
       gender: 1,
       sterilization: 0,
