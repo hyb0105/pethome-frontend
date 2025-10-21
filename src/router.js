@@ -12,6 +12,8 @@ import AdminPetManagement from './components/AdminPetManagement.vue';
 import Register from './components/Register.vue';
 // 【新增】导入个人中心页面组件
 import UserProfile from './components/UserProfile.vue';
+// 【【新增】】 导入用户管理页面
+import AdminUserManagement from './components/AdminUserManagement.vue';
 
 const routes = [
     {
@@ -57,6 +59,13 @@ const routes = [
         path: '/admin/pets',
         name: 'AdminPetManagement',
         component: AdminPetManagement,
+        meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    // 【【新增】】 为用户管理页面添加新路由
+    {
+        path: '/admin/users',
+        name: 'AdminUserManagement',
+        component: AdminUserManagement,
         meta: { requiresAuth: true, requiresAdmin: true }
     },
     // 【新增】为个人中心页面添加路由
