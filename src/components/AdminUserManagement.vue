@@ -57,11 +57,12 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
-import { ElMessage } from 'element-plus';
 // 引入我们下一步要创建的弹窗组件
 import UserFormModal from './UserFormModal.vue';
 // 【新增】导入密码重置弹窗
 import UserPasswordResetModal from './UserPasswordResetModal.vue';
+// 【【修改这一行】】
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 const users = ref([]);
 const loading = ref(true);

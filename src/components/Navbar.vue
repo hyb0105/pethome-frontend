@@ -4,16 +4,21 @@
       class="navbar"
       mode="horizontal"
       :router="true"
-  >
+      :ellipsis="false" >
     <el-menu-item index="/" class="navbar-brand">PetHome</el-menu-item>
 
     <div class="flex-grow" />
 
     <el-menu-item index="/">主页</el-menu-item>
     <el-menu-item v-if="!isAdmin" index="/my-applications">我的申请</el-menu-item>
-    <el-menu-item index="/profile">个人中心</el-menu-item>
+    <el-sub-menu index="user-menu">
+      <template #title>
+        用户
+      </template>
+      <el-menu-item index="/profile">个人中心</el-menu-item>
+      <el-menu-item @click="logout">退出登录</el-menu-item>
+    </el-sub-menu>
 
-    <el-menu-item @click="logout">退出登录</el-menu-item>
   </el-menu>
 </template>
 
@@ -59,4 +64,5 @@ export default {
 .flex-grow {
   flex-grow: 1; /* 占据所有剩余空间，将右侧菜单推到最右 */
 }
+
 </style>

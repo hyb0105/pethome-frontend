@@ -2,48 +2,52 @@
   <div class="page-container">
     <el-skeleton :loading="loading" animated>
       <template #template>
-        <div class="skeleton-container">
-          <el-skeleton-item variant="image" class="skeleton-img" />
-          <div class="skeleton-info">
-            <el-skeleton-item variant="p" style="width: 50%" />
-            <el-skeleton :rows="5" />
+        <el-card class="pet-detail-card-new skeleton-card">
+          <el-skeleton-item variant="h1" style="width: 30%; margin-bottom: 10px;" />
+          <div class="skeleton-tags">
+            <el-skeleton-item variant="text" style="width: 80px; margin-right: 10px;" />
+            <el-skeleton-item variant="text" style="width: 50px; margin-right: 10px;" />
+            <el-skeleton-item variant="text" style="width: 50px; margin-right: 10px;" />
+            <el-skeleton-item variant="text" style="width: 100px;" />
           </div>
-        </div>
-      </template>
-      <template #default>
-        <el-card v-if="pet" class="pet-detail-card">
-          <el-row :gutter="20">
-            <el-col :span="10">
-              <el-image :src="pet.photoUrl || defaultPetImage" fit="cover" class="pet-photo-large" />
-            </el-col>
-            <el-col :span="14">
-              <div class="pet-info-large">
-                <h1>{{ pet.name }}</h1>
-                <p class="description">{{ pet.description }}</p>
-                <el-descriptions :column="2" border class="info-grid">
-                  <el-descriptions-item label="类型">{{ pet.type }}</el-descriptions-item>
-                  <el-descriptions-item label="品种">{{ pet.breed }}</el-descriptions-item>
-                  <el-descriptions-item label="城市">{{ pet.city }}</el-descriptions-item>
-                  <el-descriptions-item label="年龄">{{ pet.age }} 岁</el-descriptions-item>
-                  <el-descriptions-item label="性别">
-                    <el-tag size="small">{{ pet.gender === 1 ? '雄性' : '雌性' }}</el-tag>
-                  </el-descriptions-item>
-                  <el-descriptions-item label="健康状况">{{ pet.healthStatus }}</el-descriptions-item>
-                  <el-descriptions-item label="疫苗情况">{{ pet.vaccination }}</el-descriptions-item>
-                  <el-descriptions-item label="是否绝育">
-                    <el-tag :type="pet.sterilization === 1 ? 'success' : 'info'" size="small">
-                      {{ pet.sterilization === 1 ? '是' : '否' }}
-                    </el-tag>
-                  </el-descriptions-item>
-                </el-descriptions>
-                <div class="actions">
-                  <el-button v-if="!isAdmin" type="success" size="large" @click="isModalVisible = true">申请领养</el-button>
-                  <el-button size="large" @click="$router.push('/')">返回主页</el-button>
-                </div>
-              </div>
-            </el-col>
-          </el-row>
+          <el-skeleton-item variant="image" class="skeleton-img-new" />
+          <el-skeleton :rows="3" style="margin-top: 20px;"/>
         </el-card>
+      </template>
+
+      <template #default>
+        <el-card v-if="pet" class="pet-detail-card-new">
+          <h1 class="pet-name">{{ pet.name }}</h1>
+
+          <div class="pet-tags-new">
+            <el-tag effect="plain" round>{{ pet.type }} / {{ pet.breed }}</el-tag>
+            <el-tag effect="plain" round>{{ genderText }}</el-tag>
+            <el-tag effect="plain" round>{{ pet.age }} 岁</el-tag>
+            <el-tag type="success" effect="plain" round>{{ pet.vaccination }}</el-tag>
+            <el-tag v-if="pet.sterilization === 1" type="info" effect="plain" round>已绝育</el-tag>
+          </div>
+
+          <el-image
+              :src="pet.photoUrl || defaultPetImage"
+              fit="cover"
+              class="pet-photo-main"
+              :preview-src-list="[pet.photoUrl || defaultPetImage]"
+              hide-on-click-modal
+              preview-teleported
+          />
+
+          <div class="description-section">
+            <h3>宠物介绍</h3>
+            <p class="description-text">{{ pet.description || '暂无详细介绍。' }}</p>
+          </div>
+
+          <div class="actions-new">
+            <el-button v-if="!isAdmin" type="success" size="large" @click="isModalVisible = true">申请领养</el-button>
+            <el-button size="large" @click="$router.push('/')">返回主页</el-button>
+          </div>
+
+        </el-card>
+        <el-empty v-else-if="!loading" description="未找到该宠物的信息" />
       </template>
     </el-skeleton>
 
@@ -70,9 +74,6 @@
 </template>
 
 <script setup>
-// ======================================================
-// 【修改】从 vue 导入 computed
-// ======================================================
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
@@ -94,11 +95,15 @@ const applicationForm = ref({
   reason: ''
 });
 
-// ======================================================
-// 【新增】一个计算属性，用来判断当前用户是否是管理员
-// ======================================================
 const isAdmin = computed(() => {
   return localStorage.getItem('userRole') === '1';
+});
+
+// 【新增】计算属性用于显示性别文字
+const genderText = computed(() => {
+  if (!pet.value) return '';
+  // 根据目标图片调整文字
+  return pet.value.gender === 1 ? '公' : '母';
 });
 
 onMounted(async () => {
@@ -109,7 +114,12 @@ onMounted(async () => {
     return;
   }
   try {
-    const response = await axios.get(`http://localhost:8080/api/pets/${petId}`);
+    // 【修改】确保请求时带上 Auth Token，即使 GET /api/pets/{id} 是公开的
+    // 因为后端 PetService/PetMapper 可能未来会根据用户角色返回不同信息
+    const token = localStorage.getItem('authToken');
+    const response = await axios.get(`http://localhost:8080/api/pets/${petId}`, {
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    });
     pet.value = response.data;
   } catch (err) {
     error.value = '无法加载宠物详情。';
@@ -123,15 +133,23 @@ const submitApplication = async () => {
   isSubmitting.value = true;
   try {
     const token = localStorage.getItem('authToken');
+    if (!token) {
+      // 如果没有 token，提示登录
+      ElMessage.warning('请先登录后再提交申请。');
+      router.push('/login');
+      return;
+    }
     const payload = {
       petId: pet.value.id,
       ...applicationForm.value,
     };
     await axios.post('http://localhost:8080/api/applications', payload, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: {'Authorization': `Bearer ${token}`}
     });
     ElMessage.success('您的领养申请已成功提交！');
     isModalVisible.value = false;
+    // 清空表单，以便下次打开是空的
+    applicationForm.value = {adopterName: '', adopterPhone: '', reason: ''};
   } catch (err) {
     ElMessage.error('提交失败，可能该宠物已被申请或服务器出错。');
   } finally {
@@ -141,11 +159,84 @@ const submitApplication = async () => {
 </script>
 
 <style scoped>
-.page-container { max-width: 1000px; margin: 20px auto; padding: 20px; }
-.pet-photo-large { width: 100%; height: 400px; border-radius: 8px; }
-.description { color: #666; margin-bottom: 20px; }
-.actions { margin-top: 20px; }
-.skeleton-container { display: flex; gap: 20px; }
-.skeleton-img { width: 400px; height: 400px; }
-.skeleton-info { flex: 1; }
+.page-container {
+  max-width: 800px; /* 调整最大宽度以适应单列布局 */
+  margin: 20px auto;
+  padding: 20px;
+}
+
+/* 新卡片样式 */
+.pet-detail-card-new {
+  padding: 20px; /* 给卡片内部一些边距 */
+}
+
+/* 宠物名称 */
+.pet-name {
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 2.2em; /* 增大字号 */
+}
+
+/* 标签组 */
+.pet-tags-new {
+  display: flex;
+  justify-content: center; /* 居中显示 */
+  flex-wrap: wrap; /* 允许换行 */
+  gap: 10px; /* 标签之间的间距 */
+  margin-bottom: 25px; /* 与图片拉开距离 */
+}
+
+/* 主图片 */
+.pet-photo-main {
+  width: 100%;
+  height: auto; /* 高度自适应 */
+  max-height: 500px; /* 可以设置最大高度 */
+  border-radius: 8px; /* 轻微圆角 */
+  display: block; /* 避免图片下方出现空隙 */
+  margin-bottom: 20px; /* 与描述文字拉开距离 */
+  object-fit: cover; /* 保持图片比例 */
+}
+
+/* 描述区域 */
+.description-section h3 {
+  margin-bottom: 10px;
+  border-bottom: 1px solid #eee; /* 添加下划线 */
+  padding-bottom: 5px;
+  font-size: 1.2em;
+}
+
+.description-text {
+  color: #555; /* 调整文字颜色 */
+  line-height: 1.8; /* 增大行高 */
+  text-indent: 2em; /* 首行缩进 */
+}
+
+/* 操作按钮区域 */
+.actions-new {
+  margin-top: 30px; /* 与上方内容拉开距离 */
+  text-align: center; /* 按钮居中 */
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* 骨架屏样式调整 */
+.skeleton-card {
+  padding: 20px;
+}
+
+.skeleton-tags {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 25px;
+}
+
+.skeleton-img-new {
+  width: 100%;
+  height: 400px; /* 骨架屏图片高度 */
+  margin-bottom: 20px;
+}
+
+/* 移除旧的特定布局样式 (如果还存在) */
+/* .pet-photo-large, .description, .actions, .skeleton-container, .skeleton-img, .skeleton-info { ... } */
 </style>
