@@ -16,6 +16,7 @@
         用户
       </template>
       <el-menu-item index="/profile">个人中心</el-menu-item>
+      <el-menu-item index="/addresses">地址管理</el-menu-item>
       <el-menu-item @click="logout">退出登录</el-menu-item>
     </el-sub-menu>
 

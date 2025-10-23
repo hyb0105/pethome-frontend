@@ -14,6 +14,8 @@ import Register from './components/Register.vue';
 import UserProfile from './components/UserProfile.vue';
 // 【【新增】】 导入用户管理页面
 import AdminUserManagement from './components/AdminUserManagement.vue';
+// 【新增】导入地址管理组件
+import UserAddress from './components/UserAddress.vue';
 
 const routes = [
     {
@@ -73,6 +75,13 @@ const routes = [
         path: '/profile',
         name: 'UserProfile',
         component: UserProfile,
+        meta: { requiresAuth: true }
+    },
+    // 【新增】地址管理路由
+    {
+        path: '/addresses',
+        name: 'UserAddresses',
+        component: UserAddress,
         meta: { requiresAuth: true }
     }
 ];

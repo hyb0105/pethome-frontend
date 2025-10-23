@@ -74,7 +74,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import defaultPetImage from '@/assets/test-cat.jpg';
@@ -92,7 +92,8 @@ const isSubmitting = ref(false);
 const applicationForm = ref({
   adopterName: '',
   adopterPhone: '',
-  reason: ''
+  reason: '',
+  addressId: null
 });
 
 const isAdmin = computed(() => {
@@ -105,6 +106,9 @@ const genderText = computed(() => {
   // 根据目标图片调整文字
   return pet.value.gender === 1 ? '公' : '母';
 });
+// 【新增】存储用户地址列表
+const userAddresses = ref([]);
+const isFetchingAddresses = ref(false);
 
 onMounted(async () => {
   const petId = route.params.id;
@@ -130,6 +134,16 @@ onMounted(async () => {
 });
 
 const submitApplication = async () => {
+  // 添加地址校验
+  if (!applicationForm.value.addressId) {
+    ElMessage.error('请选择一个收货地址');
+    return;
+  }
+  // 添加其他字段校验 (如果需要)
+  if (!applicationForm.value.adopterName || !applicationForm.value.adopterPhone || !applicationForm.value.reason) {
+    ElMessage.error('请填写完整的申请信息');
+    return;
+  }
   isSubmitting.value = true;
   try {
     const token = localStorage.getItem('authToken');
@@ -149,13 +163,62 @@ const submitApplication = async () => {
     ElMessage.success('您的领养申请已成功提交！');
     isModalVisible.value = false;
     // 清空表单，以便下次打开是空的
-    applicationForm.value = {adopterName: '', adopterPhone: '', reason: ''};
+    applicationForm.value = {adopterName: '', adopterPhone: '', reason: '', addressId: null };
   } catch (err) {
     ElMessage.error('提交失败，可能该宠物已被申请或服务器出错。');
   } finally {
     isSubmitting.value = false;
   }
 };
+
+// 【新增】获取用户地址的方法
+const fetchUserAddresses = async () => {
+  // 只有在弹窗可见时才获取
+  if (!isModalVisible.value) return;
+  isFetchingAddresses.value = true;
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await axios.get('http://localhost:8080/api/addresses', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    userAddresses.value = response.data;
+    // 如果有默认地址，自动选中
+    const defaultAddr = userAddresses.value.find(addr => addr.isDefault === 1);
+    if (defaultAddr) {
+      applicationForm.value.addressId = defaultAddr.id;
+    } else if (userAddresses.value.length > 0) {
+      // 如果没有默认，选中第一个
+      applicationForm.value.addressId = userAddresses.value[0].id;
+    }
+
+  } catch (error) {
+    ElMessage.error('加载地址失败，请稍后再试');
+    // 加载失败时清空地址列表，避免用户选择无效地址
+    userAddresses.value = [];
+    applicationForm.value.addressId = null;
+  } finally {
+    isFetchingAddresses.value = false;
+  }
+};
+
+// 【新增】格式化地址用于下拉选项显示
+const formatAddressOption = (addr) => {
+  return `${addr.recipientName} - ${addr.province || ''}${addr.city || ''}${addr.district || ''}${addr.detailedAddress}`;
+};
+
+// 【新增】监听弹窗状态，打开时获取地址
+watch(isModalVisible, (newValue) => {
+  if (newValue) {
+    fetchUserAddresses();
+    // 也可以在这里预填姓名和电话 (如果用户信息里有)
+    // applicationForm.value.adopterName = ...
+    // applicationForm.value.adopterPhone = ...
+  } else {
+    // 关闭时清空地址列表和选择
+    userAddresses.value = [];
+    applicationForm.value.addressId = null;
+  }
+});
 </script>
 
 <style scoped>
