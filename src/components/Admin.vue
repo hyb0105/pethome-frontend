@@ -36,6 +36,11 @@
         </el-table-column>
       </el-table>
     </el-card>
+    <ApplicationDetailModal
+        v-if="isDetailModalVisible"
+        :application-data="selectedApplicationDetail"
+        @close="closeDetailModal"
+    />
   </div>
 </template>
 
@@ -43,6 +48,13 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { ElMessage, ElMessageBox } from 'element-plus';
+// 【新增】导入详情弹窗组件
+import ApplicationDetailModal from './ApplicationDetailModal.vue';
+
+// 【新增】详情弹窗相关状态
+const isDetailModalVisible = ref(false);
+const selectedApplicationDetail = ref(null);
+const isDetailLoading = ref(false); // 详情加载状态
 
 const applications = ref([]);
 const loading = ref(true);
@@ -112,6 +124,31 @@ const getStatusType = (status) => {
     case 2: return 'danger';
     default: return 'info';
   }
+};
+
+// 【新增】打开详情弹窗的方法
+const openDetailModal = async (applicationId) => {
+  isDetailLoading.value = true;
+  isDetailModalVisible.value = true;
+  selectedApplicationDetail.value = null; // 先清空旧数据
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await axios.get(`http://localhost:8080/api/applications/${applicationId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    selectedApplicationDetail.value = response.data;
+  } catch (err) {
+    ElMessage.error('加载申请详情失败');
+    isDetailModalVisible.value = false; // 加载失败直接关闭弹窗
+  } finally {
+    isDetailLoading.value = false;
+  }
+};
+
+// 【新增】关闭详情弹窗的方法
+const closeDetailModal = () => {
+  isDetailModalVisible.value = false;
+  selectedApplicationDetail.value = null;
 };
 
 onMounted(fetchAllApplications);

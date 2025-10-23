@@ -59,6 +59,27 @@
         <el-form-item label="联系电话" required>
           <el-input v-model="applicationForm.adopterPhone" />
         </el-form-item>
+        <el-form-item label="选择收货地址" required>
+          <el-select
+              v-model="applicationForm.addressId"
+              placeholder="请选择地址"
+              style="width: 100%;"
+              :loading="isFetchingAddresses"
+          >
+            <el-option
+                v-for="addr in userAddresses"
+                :key="addr.id"
+                :label="formatAddressOption(addr)"
+                :value="addr.id"
+            />
+            <template #empty>
+              <div style="text-align: center; padding: 10px;">
+                <span>没有地址？</span>
+                <el-button type="primary" link @click="$router.push('/addresses')">去添加</el-button>
+              </div>
+            </template>
+          </el-select>
+        </el-form-item>
         <el-form-item label="申请理由" required>
           <el-input v-model="applicationForm.reason" type="textarea" :rows="4" />
         </el-form-item>
