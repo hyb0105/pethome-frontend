@@ -25,13 +25,20 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200">
+        <el-table-column label="操作" width="260">
           <template #default="scope">
-            <div v-if="scope.row.status === 0">
+            <div v-if="scope.row.status === 0" style="display: inline-block; margin-right: 10px;">
               <el-button size="small" type="success" @click="handleApproval(scope.row.id, 1)">批准</el-button>
               <el-button size="small" type="danger" @click="handleApproval(scope.row.id, 2)">拒绝</el-button>
             </div>
-            <span v-else>已处理</span>
+            <span v-else style="display: inline-block; margin-right: 10px; color: #999;">已处理</span>
+
+            <el-button
+                size="small"
+                :icon="MoreFilled"
+                circle
+                @click="openDetailModal(scope.row.id)"
+            />
           </template>
         </el-table-column>
       </el-table>
@@ -50,6 +57,8 @@ import axios from 'axios';
 import { ElMessage, ElMessageBox } from 'element-plus';
 // 【新增】导入详情弹窗组件
 import ApplicationDetailModal from './ApplicationDetailModal.vue';
+// 【新增】导入 MoreFilled 图标
+import { MoreFilled } from '@element-plus/icons-vue';
 
 // 【新增】详情弹窗相关状态
 const isDetailModalVisible = ref(false);

@@ -9,7 +9,7 @@
   >
     <div v-if="!applicationData" v-loading="true" style="min-height: 300px;"></div>
     <div v-else class="detail-container">
-      <el-descriptions :column="2" border title="基本信息">
+      <el-descriptions :column="2" title="基本信息">
         <el-descriptions-item label="申请ID">{{ applicationData.id }}</el-descriptions-item>
         <el-descriptions-item label="申请状态">
           <el-tag :type="getStatusType(applicationData.status)">
@@ -17,17 +17,17 @@
           </el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="申请时间">{{ new Date(applicationData.applicationTime).toLocaleString() }}</el-descriptions-item>
-        <el-descriptions-item label="申请理由">{{ applicationData.reason }}</el-descriptions-item>
+
       </el-descriptions>
 
-      <el-descriptions :column="2" border title="申请人信息" style="margin-top: 20px;">
+      <el-descriptions :column="2" title="申请人信息" style="margin-top: 20px;">
         <el-descriptions-item label="申请表-姓名">{{ applicationData.adopterName }}</el-descriptions-item>
         <el-descriptions-item label="申请表-电话">{{ applicationData.adopterPhone }}</el-descriptions-item>
         <el-descriptions-item label="注册用户名">{{ applicationData.adopterUsername }}</el-descriptions-item>
         <el-descriptions-item label="注册邮箱">{{ applicationData.adopterEmail }}</el-descriptions-item>
       </el-descriptions>
 
-      <el-descriptions :column="1" border title="收货地址信息" style="margin-top: 20px;">
+      <el-descriptions :column="1" title="收货地址信息" style="margin-top: 20px;">
         <el-descriptions-item label="收件人">{{ applicationData.addressRecipientName }}</el-descriptions-item>
         <el-descriptions-item label="联系电话">{{ applicationData.addressPhone }}</el-descriptions-item>
         <el-descriptions-item label="详细地址">
@@ -39,7 +39,7 @@
         </el-descriptions-item>
       </el-descriptions>
 
-      <el-descriptions :column="2" border title="申请宠物信息" style="margin-top: 20px;">
+      <el-descriptions :column="2" title="申请宠物信息" style="margin-top: 20px;">
         <el-descriptions-item label="宠物名称">{{ applicationData.petName }}</el-descriptions-item>
         <el-descriptions-item label="类型/品种">{{ applicationData.petType }} / {{ applicationData.petBreed }}</el-descriptions-item>
         <el-descriptions-item label="宠物照片" :span="2">
@@ -54,15 +54,9 @@
           <span v-else>暂无照片</span>
         </el-descriptions-item>
       </el-descriptions>
-
-      <div class="static-section" style="margin-top: 20px;">
-        <h4>领养承诺</h4>
-        <ol>
-          <li>承诺...（您的静态文本）</li>
-          <li>遵守...（您的静态文本）</li>
-          <li>...</li>
-        </ol>
-      </div>
+      <el-descriptions :column="2" title="申请理由" style="margin-top: 20px;">
+        <el-descriptions-item label="">{{ applicationData.reason }}</el-descriptions-item>
+      </el-descriptions>
 
     </div>
     <template #footer>
