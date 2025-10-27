@@ -29,12 +29,11 @@
         <el-table-column label="操作" width="120">
           <template #default="scope">
             <el-button
-                v-if="scope.row.status === 2"
                 size="small"
-                type="primary"
-                @click="openResubmitModal(scope.row)"
+                :icon="MoreFilled"
+                circle
+                @click="openUserDetailModal(scope.row.id)"
             >
-            重新提交
             </el-button>
           </template>
         </el-table-column>
@@ -177,6 +176,7 @@ const openUserDetailModal = async (applicationId) => {
     // 检查返回的数据是否确实是当前用户的 (可选，增加安全性)
     // const userIdFromToken = ... // 从 token 解码 userId
     // if (response.data.adopterId === userIdFromToken) {
+    console.log('API 返回的申请详情数据:', response.data);
     selectedApplicationForDetail.value = response.data;
     // } else {
     //    throw new Error('Permission denied'); // 或者静默失败

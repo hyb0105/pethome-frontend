@@ -62,6 +62,7 @@ const props = defineProps({
 
 // 【修改】增加 openResubmit 事件
 defineEmits(['close', 'openResubmit']);
+console.log('弹窗接收到的 applicationData:', props.applicationData);
 
 // 状态格式化函数 (与 MyApplications.vue 相同)
 const formatStatus = (status) => {
