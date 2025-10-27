@@ -91,27 +91,46 @@ const fetchAllApplications = async () => {
 // 【修正】直接在顶层定义 handleApproval 方法，并移除重复定义
 const handleApproval = async (applicationId, status) => {
   const action = status === 1 ? '批准' : '拒绝';
+  let reason = null;
   try {
-    await ElMessageBox.confirm(
-        `您确定要“${action}”这个申请吗？`,
-        '确认操作',
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning',
-        }
-    );
+    // 如果是拒绝，先弹出输入框获取理由
+    if (status === 2) {
+      const { value } = await ElMessageBox.prompt('请输入拒绝理由：', '拒绝申请', {
+        confirmButtonText: '确定拒绝',
+        cancelButtonText: '取消',
+        inputPattern: /\S/, // 确保理由不为空或只有空格
+        inputErrorMessage: '拒绝理由不能为空',
+      });
+      reason = value; // 获取输入的理由
+    } else {
+      // 如果是批准，弹出普通确认框
+      await ElMessageBox.confirm(
+          `您确定要“${action}”这个申请吗？`,
+          '确认操作',
+          { type: 'warning' } // 批准用 warning 也可以
+      );
+    }
 
+    // 用户确认后，发送请求
     const token = localStorage.getItem('authToken');
-    await axios.put(`http://localhost:8080/api/applications/${applicationId}/status`,
-        { status },
+    const payload = {
+      status: status,
+      // 【修改】包含理由 (如果 status 是 2)
+      rejectionReason: status === 2 ? reason : null
+    };
+    await axios.put(
+        `http://localhost:8080/api/applications/${applicationId}/status`,
+        payload, // 【修改】发送包含理由的 payload
         { headers: { 'Authorization': `Bearer ${token}` } }
     );
     ElMessage.success(`申请 #${applicationId} 已成功${action}！`);
     await fetchAllApplications(); // 刷新列表
+
   } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('审批操作失败！');
+    if (error !== 'cancel' && error?.message !== 'Input validation failed') { // 排除取消和输入验证失败
+      ElMessage.error(error.response?.data || `审批操作失败！`); // 显示后端返回的错误信息
+    } else if (error?.message === 'Input validation failed') {
+      // ElMessageBox.prompt 内部会提示错误，这里可以不提示
     }
   }
 };

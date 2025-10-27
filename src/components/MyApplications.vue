@@ -32,11 +32,10 @@
                 v-if="scope.row.status === 2"
                 size="small"
                 type="primary"
-                @click="handleResubmit(scope.row.id)"
+                @click="openResubmitModal(scope.row)"
             >
-              重新提交
+            重新提交
             </el-button>
-            <span v-else>-</span>
           </template>
         </el-table-column>
 
@@ -48,6 +47,13 @@
         @close="closeResubmitModal"
         @save="handleSaveResubmission"
     />
+
+    <UserApplicationDetailModal
+        v-if="isUserDetailModalVisible"
+        :application-data="selectedApplicationForDetail"
+        @close="closeUserDetailModal"
+        @openResubmit="handleOpenResubmitModalFromDetail"
+    />
   </div>
 </template>
 
@@ -58,6 +64,10 @@ import axios from 'axios';
 import { ElMessage, ElMessageBox } from 'element-plus';
 // 【新增】导入重新提交弹窗
 import ResubmitApplicationModal from './ResubmitApplicationModal.vue';
+// 【新增】导入 MoreFilled 图标
+import { MoreFilled } from '@element-plus/icons-vue';
+// 【新增】导入用户查看详情的弹窗
+import UserApplicationDetailModal from './UserApplicationDetailModal.vue';
 
 const router = useRouter();
 const applications = ref([]);
@@ -66,6 +76,11 @@ const loading = ref(true);
 // 【新增】重新提交弹窗状态
 const isResubmitModalVisible = ref(false);
 const selectedApplicationForResubmit = ref(null);
+
+// 【新增】用户详情弹窗状态
+const isUserDetailModalVisible = ref(false);
+const selectedApplicationForDetail = ref(null); // 存储详情数据
+const isDetailLoading = ref(false); // 详情加载状态
 
 const fetchMyApplications = async () => {
   loading.value = true;
@@ -105,9 +120,13 @@ const getStatusType = (status) => {
   }
 };
 
-// 【修改】打开重新提交弹窗的方法
-const openResubmitModal = (application) => {
-  selectedApplicationForResubmit.value = application; // 传递整个申请对象
+// 【修改】打开“重新提交编辑”弹窗的方法 (之前叫 openResubmitModal)
+// 这个方法现在由 UserApplicationDetailModal 触发
+const openResubmitEditModal = (application) => {
+  // 关闭详情弹窗 (如果开着的话)
+  isUserDetailModalVisible.value = false;
+
+  selectedApplicationForResubmit.value = application;
   isResubmitModalVisible.value = true;
 };
 // 【新增】关闭重新提交弹窗
@@ -139,6 +158,48 @@ const handleSaveResubmission = async (updatedApplicationData) => {
     ElMessage.error(error.response?.data?.message || '重新提交失败，请稍后再试或联系管理员。');
   } finally {
     loading.value = false; // 结束 loading
+  }
+};
+
+// 【新增】打开“用户查看详情”弹窗的方法
+const openUserDetailModal = async (applicationId) => {
+  isDetailLoading.value = true; // 开始加载
+  isUserDetailModalVisible.value = true;
+  selectedApplicationForDetail.value = null; // 清空旧数据
+  try {
+    const token = localStorage.getItem('authToken');
+    // 【重要】调用获取详情的 API (复用管理员的 GET /{id})
+    // 确保普通用户有权限访问自己的申请详情 (后端需要配置或修改)
+    // 假设后端允许用户访问 GET /api/applications/{id} 来获取自己的详情
+    const response = await axios.get(`http://localhost:8080/api/applications/${applicationId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    // 检查返回的数据是否确实是当前用户的 (可选，增加安全性)
+    // const userIdFromToken = ... // 从 token 解码 userId
+    // if (response.data.adopterId === userIdFromToken) {
+    selectedApplicationForDetail.value = response.data;
+    // } else {
+    //    throw new Error('Permission denied'); // 或者静默失败
+    // }
+  } catch (err) {
+    ElMessage.error('加载申请详情失败');
+    isUserDetailModalVisible.value = false; // 加载失败则关闭
+  } finally {
+    isDetailLoading.value = false; // 结束加载
+  }
+};
+
+// 【新增】关闭“用户查看详情”弹窗
+const closeUserDetailModal = () => {
+  isUserDetailModalVisible.value = false;
+  selectedApplicationForDetail.value = null;
+};
+
+// 【新增】处理从详情弹窗触发的“重新提交”事件
+const handleOpenResubmitModalFromDetail = () => {
+  // selectedApplicationForDetail.value 包含了详情数据
+  if (selectedApplicationForDetail.value) {
+    openResubmitEditModal(selectedApplicationForDetail.value);
   }
 };
 
