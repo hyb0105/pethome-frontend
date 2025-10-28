@@ -16,7 +16,15 @@
             {{ formatStatus(applicationData.status) }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="申请时间">{{ new Date(applicationData.applicationTime).toLocaleString() }}</el-descriptions-item>
+        <el-descriptions-item label="申请时间" :span="2">{{ new Date(applicationData.applicationTime).toLocaleString() }}</el-descriptions-item>
+
+        <el-descriptions-item
+            label="拒绝理由"
+            v-if="applicationData.status === 2 && applicationData.rejectionReason"
+            :span="2"
+        >
+          <span style="color: #F56C6C;">{{ applicationData.rejectionReason }}</span>
+        </el-descriptions-item>
 
       </el-descriptions>
 
@@ -54,7 +62,8 @@
           <span v-else>暂无照片</span>
         </el-descriptions-item>
       </el-descriptions>
-      <el-descriptions :column="2" title="申请理由" style="margin-top: 20px;">
+
+      <el-descriptions :column="1" title="申请理由" style="margin-top: 20px;">
         <el-descriptions-item label="">{{ applicationData.reason }}</el-descriptions-item>
       </el-descriptions>
 
@@ -75,7 +84,7 @@ const props = defineProps({
   }
 });
 
-defineEmits(['close']); // , 'approve' // 如果添加审批按钮，需要emit事件
+defineEmits(['close']);
 
 // 复用 Admin.vue 的状态格式化函数 (或者提升到公共 utils)
 const formatStatus = (status) => {
@@ -88,10 +97,14 @@ const formatStatus = (status) => {
 };
 const getStatusType = (status) => {
   switch (status) {
-    case 0: return 'warning';
-    case 1: return 'success';
-    case 2: return 'danger';
-    default: return 'info';
+    case 0:
+      return 'warning';
+    case 1:
+      return 'success';
+    case 2:
+      return 'danger';
+    default:
+      return 'info';
   }
 };
 </script>
@@ -102,10 +115,12 @@ const getStatusType = (status) => {
   overflow-y: auto;
   padding-right: 15px; /* 为滚动条留出空间 */
 }
+
 /* 可以为 .static-section 添加样式 */
 .static-section h4 {
   margin-bottom: 10px;
 }
+
 .static-section ol {
   padding-left: 20px;
   color: #666;

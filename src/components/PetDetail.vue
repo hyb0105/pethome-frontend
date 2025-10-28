@@ -20,6 +20,7 @@
           <h1 class="pet-name">{{ pet.name }}</h1>
 
           <div class="pet-tags-new">
+            <el-tag effect="plain" round type="primary">{{ pet.city }}</el-tag>
             <el-tag effect="plain" round>{{ pet.type }} / {{ pet.breed }}</el-tag>
             <el-tag effect="plain" round>{{ genderText }}</el-tag>
             <el-tag effect="plain" round>{{ pet.age }} 岁</el-tag>

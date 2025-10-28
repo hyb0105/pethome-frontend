@@ -16,6 +16,8 @@ import UserProfile from './components/UserProfile.vue';
 import AdminUserManagement from './components/AdminUserManagement.vue';
 // 【新增】导入地址管理组件
 import UserAddress from './components/UserAddress.vue';
+// 【【新增】】 导入修改密码组件
+import ChangePassword from './components/ChangePassword.vue';
 
 const routes = [
     {
@@ -82,6 +84,13 @@ const routes = [
         path: '/addresses',
         name: 'UserAddresses',
         component: UserAddress,
+        meta: { requiresAuth: true }
+    },
+    // 【【新增】】 为修改密码页面添加路由
+    {
+        path: '/change-password',
+        name: 'ChangePassword',
+        component: ChangePassword,
         meta: { requiresAuth: true }
     }
 ];

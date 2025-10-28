@@ -1,6 +1,6 @@
 <template>
   <div class="page-container">
-    <el-card>
+    <el-card class="profile-card">
       <template #header>
         <h2>个人中心</h2>
       </template>
@@ -40,15 +40,18 @@
         </el-form-item>
       </el-form>
     </el-card>
+
   </div>
 </template>
 
 <script setup>
+// 【【修改】】 移除了 'reactive'
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
 import { Plus } from '@element-plus/icons-vue';
 
+// --- 个人资料逻辑 (保持不变) ---
 const user = ref(null);
 const loading = ref(true);
 
@@ -106,16 +109,44 @@ const updateProfile = async () => {
 };
 
 onMounted(fetchUserProfile);
+
+// --- 【【移除】】修改密码逻辑已被删除 ---
+
 </script>
 
 <style scoped>
-.page-container { max-width: 800px; margin: 20px auto; padding: 20px; }
-.avatar-uploader .avatar { width: 128px; height: 128px; display: block; }
+.page-container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+}
+/* 【【移除】】 .password-card 样式 */
+
+.avatar-uploader .avatar {
+  width: 128px;
+  height: 128px;
+  display: block;
+}
 </style>
 
 <style>
 /* These styles are global for the uploader component */
-.avatar-uploader .el-upload { border: 1px dashed var(--el-border-color); border-radius: 6px; cursor: pointer; position: relative; overflow: hidden; transition: var(--el-transition-duration-fast); }
-.avatar-uploader .el-upload:hover { border-color: var(--el-color-primary); }
-.el-icon.avatar-uploader-icon { font-size: 28px; color: #8c939d; width: 128px; height: 128px; text-align: center; }
+.avatar-uploader .el-upload {
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--el-transition-duration-fast);
+}
+.avatar-uploader .el-upload:hover {
+  border-color: var(--el-color-primary);
+}
+.el-icon.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 128px;
+  height: 128px;
+  text-align: center;
+}
 </style>

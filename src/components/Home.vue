@@ -21,7 +21,7 @@
             <div class="pet-info">
               <h3>{{ pet.name }}</h3>
               <div class="pet-tags">
-                <span>{{ pet.breed }} ({{ pet.type }})</span>
+                <span>{{ pet.city }} | {{ pet.breed }} ({{ pet.type }})</span>
                 <span>{{ pet.age }} 岁</span>
               </div>
             </div>
