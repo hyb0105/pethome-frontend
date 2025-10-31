@@ -10,13 +10,17 @@
     <div class="flex-grow" />
 
     <el-menu-item index="/">主页</el-menu-item>
+
+    <el-menu-item index="/posts">养宠经验</el-menu-item>
+
     <el-menu-item v-if="!isAdmin" index="/my-applications">我的申请</el-menu-item>
+
     <el-sub-menu index="user-menu">
       <template #title>
         用户
       </template>
       <el-menu-item index="/profile">个人中心</el-menu-item>
-      <el-menu-item index="/posts/create">发布帖子</el-menu-item>
+      <el-menu-item index="/posts/create">我的帖子</el-menu-item>
       <el-menu-item index="/addresses">地址管理</el-menu-item>
       <el-menu-item index="/change-password">修改密码</el-menu-item>
       <el-menu-item @click="logout">退出登录</el-menu-item>
@@ -39,6 +43,10 @@ export default {
     },
     // 计算属性，确保导航栏能正确高亮当前页面
     activeIndex() {
+      // 【修改】确保 /posts/create 和 /posts/:id 也能高亮 "养宠经验"
+      if (this.$route.path.startsWith('/posts')) {
+        return '/posts';
+      }
       return this.$route.path;
     }
   },
@@ -67,5 +75,4 @@ export default {
 .flex-grow {
   flex-grow: 1; /* 占据所有剩余空间，将右侧菜单推到最右 */
 }
-
 </style>

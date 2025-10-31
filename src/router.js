@@ -1,26 +1,22 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Login from './components/Login.vue';
 import Home from './components/Home.vue';
-import PetDetail from './components/PetDetail.vue'; // 【新增】导入详情页组件
-// 【新增】导入“我的申请”页面组件
+import PetDetail from './components/PetDetail.vue';
 import MyApplications from './components/MyApplications.vue';
-// 【新增】导入后台管理页面组件
 import Admin from './components/Admin.vue';
-// 【新增】导入宠物管理页面
 import AdminPetManagement from './components/AdminPetManagement.vue';
-// 【新增】导入注册页面组件
 import Register from './components/Register.vue';
-// 【新增】导入个人中心页面组件
 import UserProfile from './components/UserProfile.vue';
-// 【【新增】】 导入用户管理页面
 import AdminUserManagement from './components/AdminUserManagement.vue';
-// 【新增】导入地址管理组件
 import UserAddress from './components/UserAddress.vue';
-// 【【新增】】 导入修改密码组件
 import ChangePassword from './components/ChangePassword.vue';
-// 【【新增导入】】
 import AdminPostManagement from './components/AdminPostManagement.vue';
 import PostCreate from './components/PostCreate.vue';
+
+// 【【新增导入】】
+import PostList from './components/PostList.vue';
+import PostDetail from './components/PostDetail.vue';
+import MyPosts from './components/MyPosts.vue'; // 导入新组件
 
 const routes = [
     {
@@ -34,13 +30,41 @@ const routes = [
         component: Register
     },
     {
-        path: '/', // 将根路径'/'设置为主页
+        path: '/',
         name: 'Home',
         component: Home,
-        meta: { requiresAuth: true } // 添加一个元字段，表示这个页面需要登录
+        meta: { requiresAuth: true }
+    },
+    // --- 帖子路由 ---
+    {
+        path: '/posts',
+        name: 'PostList',
+        component: PostList,
+        meta: { requiresAuth: true }
     },
     {
-        path: '/pet/:id', // :id 是一个动态参数，它会匹配/pet/1, /pet/2 等
+        path: '/posts/:id',
+        name: 'PostDetail',
+        component: PostDetail,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/posts/create',
+        name: 'PostCreate',
+        component: PostCreate,
+        meta: { requiresAuth: true }
+    },
+    // 【【新增路由：我的帖子】】
+    {
+        path: '/my-posts',
+        name: 'MyPosts',
+        component: MyPosts,
+        meta: { requiresAuth: true }
+    },
+
+    // --- 领养路由 ---
+    {
+        path: '/pet/:id',
         name: 'PetDetail',
         component: PetDetail,
         meta: { requiresAuth: true }
@@ -51,6 +75,28 @@ const routes = [
         component: MyApplications,
         meta: { requiresAuth: true }
     },
+
+    // --- 用户中心 ---
+    {
+        path: '/profile',
+        name: 'UserProfile',
+        component: UserProfile,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/addresses',
+        name: 'UserAddresses',
+        component: UserAddress,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/change-password',
+        name: 'ChangePassword',
+        component: ChangePassword,
+        meta: { requiresAuth: true }
+    },
+
+    // --- 管理员 ---
     {
         path: '/admin',
         redirect: '/admin/approvals'
@@ -58,56 +104,26 @@ const routes = [
     {
         path: '/admin/approvals',
         name: 'AdminApprovals',
-        component: Admin, // Admin.vue 是审批页面
+        component: Admin,
         meta: { requiresAuth: true, requiresAdmin: true }
     },
-    // 【新增】为宠物管理页面添加新路由
     {
         path: '/admin/pets',
         name: 'AdminPetManagement',
         component: AdminPetManagement,
         meta: { requiresAuth: true, requiresAdmin: true }
     },
-    // 【【新增】】 为用户管理页面添加新路由
     {
         path: '/admin/users',
         name: 'AdminUserManagement',
         component: AdminUserManagement,
         meta: { requiresAuth: true, requiresAdmin: true }
     },
-    // 【新增】为个人中心页面添加路由
-    {
-        path: '/profile',
-        name: 'UserProfile',
-        component: UserProfile,
-        meta: { requiresAuth: true }
-    },
-    // 【新增】地址管理路由
-    {
-        path: '/addresses',
-        name: 'UserAddresses',
-        component: UserAddress,
-        meta: { requiresAuth: true }
-    },
-    // 【【新增】】 为修改密码页面添加路由
-    {
-        path: '/change-password',
-        name: 'ChangePassword',
-        component: ChangePassword,
-        meta: { requiresAuth: true }
-    },
-    // 【【新增路由】】
     {
         path: '/admin/posts',
         name: 'AdminPostManagement',
         component: AdminPostManagement,
         meta: { requiresAuth: true, requiresAdmin: true }
-    },
-    {
-        path: '/posts/create',
-        name: 'PostCreate',
-        component: PostCreate,
-        meta: { requiresAuth: true }
     },
 ];
 
@@ -116,39 +132,30 @@ const router = createRouter({
     routes
 });
 
-// 【修改】升级全局路由守卫
+// 路由守卫 (保持不变)
 router.beforeEach((to, from, next) => {
     const loggedIn = localStorage.getItem('authToken');
     const userRole = localStorage.getItem('userRole');
 
-    // 1. 【新增逻辑】如果管理员已登录
     if (loggedIn && userRole === '1') {
-        // 访问的是登录页、注册页或主页，全部自动跳转到管理员审批页
         if (to.path === '/login' || to.path === '/register' || to.path === '/') {
             next('/admin/approvals');
             return;
         }
     }
-
-    // 2. 【新增逻辑】如果普通用户已登录
     if (loggedIn && userRole !== '1') {
-        // 访问的是登录页或注册页，自动跳转到主页
         if (to.path === '/login' || to.path === '/register') {
             next('/');
             return;
         }
     }
-
-    // 3. (原逻辑) 检查页面是否需要登录
     if (to.matched.some(record => record.meta.requiresAuth) && !loggedIn) {
         next('/login');
     }
-    // 4. (原逻辑) 检查页面是否需要管理员权限
     else if (to.matched.some(record => record.meta.requiresAdmin) && userRole !== '1') {
         alert('您没有权限访问此页面！');
         next('/');
     }
-    // 5. (原逻辑) 如果都通过，则正常跳转
     else {
         next();
     }
