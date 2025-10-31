@@ -67,8 +67,8 @@ import {ref, reactive, computed} from 'vue';
 import {useRouter} from 'vue-router';
 import {ElMessage} from 'element-plus';
 import {Plus} from '@element-plus/icons-vue';
-// 【【【 确保你导入了这一行 】】】
-import {QuillEditor} from 'vue-quill-editor';
+// 【【【 修复：去掉 {QuillEditor} 的花括号 】】】
+import QuillEditor from 'vue-quill-editor';
 import axios from 'axios';
 
 const router = useRouter();
@@ -87,7 +87,7 @@ const rules = reactive({
   category: [{required: true, message: '请选择领域', trigger: 'change'}],
   title: [{required: true, message: '请输入标题', trigger: 'blur'}],
   summary: [{required: true, message: '请输入摘要', trigger: 'blur'}],
-  // 【【修改】】 修复内容校验
+  // 【【修复】】 修复内容校验
   content: [{
     required: true,
     message: '请输入详细内容',
@@ -131,7 +131,7 @@ const beforePhotoUpload = (rawFile) => {
 const submitForm = async () => {
   if (!postFormRef.value) return;
 
-  // 【【修改】】 修复内容校验
+  // 【【修复】】 修复内容校验
   // 手动触发一次内容校验，因为编辑器可能不触发 'blur'
   postFormRef.value.validateField('content', async (isValid) => {
     if (isValid) {
