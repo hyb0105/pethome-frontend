@@ -18,6 +18,9 @@ import AdminUserManagement from './components/AdminUserManagement.vue';
 import UserAddress from './components/UserAddress.vue';
 // 【【新增】】 导入修改密码组件
 import ChangePassword from './components/ChangePassword.vue';
+// 【【新增导入】】
+import AdminPostManagement from './components/AdminPostManagement.vue';
+import PostCreate from './components/PostCreate.vue';
 
 const routes = [
     {
@@ -92,7 +95,20 @@ const routes = [
         name: 'ChangePassword',
         component: ChangePassword,
         meta: { requiresAuth: true }
-    }
+    },
+    // 【【新增路由】】
+    {
+        path: '/admin/posts',
+        name: 'AdminPostManagement',
+        component: AdminPostManagement,
+        meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+        path: '/posts/create',
+        name: 'PostCreate',
+        component: PostCreate,
+        meta: { requiresAuth: true }
+    },
 ];
 
 const router = createRouter({

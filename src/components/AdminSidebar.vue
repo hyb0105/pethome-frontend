@@ -19,6 +19,10 @@
       <el-icon><User /></el-icon>
       <span>用户管理</span>
     </el-menu-item>
+    <el-menu-item index="/admin/posts">
+      <el-icon><Document /></el-icon>
+      <span>帖子管理</span>
+    </el-menu-item>
 
     <div class="flex-grow"></div>
     <el-menu-item @click="logout" class="logout-item">
@@ -35,6 +39,7 @@ import {
   Menu as IconMenu,
   Setting,
   User,
+  Document
 } from '@element-plus/icons-vue'
 
 const route = useRoute();
