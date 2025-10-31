@@ -27,7 +27,7 @@
 
           <el-divider />
           <div style="text-align: center; margin-top: 20px;">
-            <el-button @click="$router.push('/posts')">返回列表</el-button>
+            <el-button @click="$router.go(-1)">返回</el-button>
           </div>
 
         </el-card>
@@ -56,8 +56,8 @@ onMounted(async () => {
   }
   try {
     const token = localStorage.getItem('authToken');
-    // 调用后端 API 获取详情
     const response = await axios.get(`http://localhost:8080/api/posts/${postId}`, {
+      // 【【修改】】 确保 token 存在时才发送
       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
     post.value = response.data;

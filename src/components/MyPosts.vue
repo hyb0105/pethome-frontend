@@ -10,7 +10,7 @@
         </div>
       </template>
 
-      <el-tabs v-model="activeTab" @tab-click="handleTabClick">
+      <el-tabs v-model="activeTab" @tab-change="handleTabChange">
         <el-tab-pane label="全部" name="all"></el-tab-pane>
         <el-tab-pane label="待审核" name="pending"></el-tab-pane>
         <el-tab-pane label="已审核" name="approved"></el-tab-pane>
@@ -69,13 +69,13 @@ import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Plus } from '@element-plus/icons-vue'; // 【【新增】】 导入 Plus 图标
+import { Plus } from '@element-plus/icons-vue';
 
 const router = useRouter();
 const loading = ref(true);
 const posts = ref([]);
 const total = ref(0);
-const activeTab = ref('all'); // 默认"全部"
+const activeTab = ref('all');
 
 const page = reactive({
   pageNum: 1,
@@ -98,7 +98,6 @@ const fetchPosts = async () => {
       pageSize: page.pageSize,
       status: statusMap[activeTab.value]
     };
-    // 【【【 修改：调用新 API 】】】
     const response = await axios.get('http://localhost:8080/api/posts/my', {
       params,
       headers: { 'Authorization': `Bearer ${token}` }
@@ -112,7 +111,8 @@ const fetchPosts = async () => {
   }
 };
 
-const handleTabClick = () => {
+// 【【【 修复：重命名为 handleTabChange 】】】
+const handleTabChange = (tabName) => {
   page.pageNum = 1;
   fetchPosts();
 };
@@ -122,12 +122,10 @@ const handlePageChange = (currentPage) => {
   fetchPosts();
 };
 
-// 【【修改】】 删除帖子逻辑 (保持不变，但确认是作者或管理员调用的)
 const handleDelete = async (postId) => {
   try {
     await ElMessageBox.confirm('确定要永久删除这个帖子吗？', '确认删除', { type: 'warning' });
     const token = localStorage.getItem('authToken');
-    // Service 会检查权限 (作者或管理员)
     await axios.delete(`http://localhost:8080/api/posts/${postId}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -140,21 +138,29 @@ const handleDelete = async (postId) => {
   }
 };
 
-// 状态格式化 (保持不变)
+// 状态格式化
 const formatStatus = (status) => {
   switch (status) {
-    case 0: return '待审核';
-    case 1: return '已审核';
-    case 2: return '已拒绝';
-    default: return '未知';
+    case 0:
+      return '待审核';
+    case 1:
+      return '已审核';
+    case 2:
+      return '已拒绝';
+    default:
+      return '未知';
   }
 };
 const getStatusType = (status) => {
   switch (status) {
-    case 0: return 'warning';
-    case 1: return 'success';
-    case 2: return 'danger';
-    default: 'info';
+    case 0:
+      return 'warning';
+    case 1:
+      return 'success';
+    case 2:
+      return 'danger';
+    default:
+      'info';
   }
 };
 
@@ -167,12 +173,13 @@ onMounted(fetchPosts);
   margin: 20px auto;
   padding: 20px;
 }
+
 .pagination-container {
   display: flex;
   justify-content: center;
   margin-top: 20px;
 }
-/* 【【新增】】 头部样式 */
+
 .card-header-flex {
   display: flex;
   justify-content: space-between;

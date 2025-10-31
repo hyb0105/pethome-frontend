@@ -59,6 +59,7 @@
           <el-button type="primary" @click="submitForm" :loading="isSubmitting">
             {{ isSubmitting ? '发布中...' : '立即发布' }}
           </el-button>
+          <el-button @click="$router.go(-1)">取消</el-button>
         </el-form-item>
       </el-form>
     </el-card>
