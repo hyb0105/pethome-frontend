@@ -5,9 +5,16 @@
         <h2>后台管理 - 所有申请</h2>
       </template>
 
+      <el-tabs v-model="activeTab" @tab-change="handleTabChange">
+        <el-tab-pane label="全部" name="all"></el-tab-pane>
+        <el-tab-pane label="待审核" name="pending"></el-tab-pane>
+        <el-tab-pane label="已通过" name="approved"></el-tab-pane>
+        <el-tab-pane label="已拒绝" name="rejected"></el-tab-pane>
+      </el-tabs>
+
       <el-table :data="applications" v-loading="loading" style="width: 100%">
         <template #empty>
-          <el-empty description="当前没有待处理的申请" />
+          <el-empty description="当前没有申请" />
         </template>
 
         <el-table-column prop="id" label="申请ID" width="80" />
@@ -25,23 +32,61 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="260">
-          <template #default="scope">
-            <div v-if="scope.row.status === 0" style="display: inline-block; margin-right: 10px;">
-              <el-button size="small" type="success" @click="handleApproval(scope.row.id, 1)">批准</el-button>
-              <el-button size="small" type="danger" @click="handleApproval(scope.row.id, 2)">拒绝</el-button>
-            </div>
-            <span v-else style="display: inline-block; margin-right: 10px; color: #999;">已处理</span>
 
-            <el-button
-                size="small"
-                :icon="MoreFilled"
-                circle
-                @click="openDetailModal(scope.row.id)"
-            />
+        <el-table-column label="操作" width="100" align="center">
+          <template #default="scope">
+            <el-dropdown>
+              <el-button :icon="MoreFilled" circle size="small" />
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item
+                      v-if="scope.row.status === 0"
+                      @click="handleApproval(scope.row.id, 1)"
+                  >
+                    <span style="color: #67C23A;">批准</span>
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                      v-if="scope.row.status === 0"
+                      @click="handleApproval(scope.row.id, 2)"
+                  >
+                    <span style="color: #F56C6C;">拒绝</span>
+                  </el-dropdown-item>
+
+                  <el-dropdown-item
+                      v-if="scope.row.status === 1"
+                      @click="handleApproval(scope.row.id, 2)"
+                  >
+                    <span style="color: #F56C6C;">改为拒绝</span>
+                  </el-dropdown-item>
+
+                  <el-dropdown-item
+                      v-if="scope.row.status === 2"
+                      @click="handleApproval(scope.row.id, 1)"
+                  >
+                    <span style="color: #67C23A;">改为批准</span>
+                  </el-dropdown-item>
+
+                  <el-dropdown-item divided @click="openDetailModal(scope.row.id)">
+                    查看详情
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
+
+      <div v-if="total > 0" class="pagination-container">
+        <el-pagination
+            background
+            layout="prev, pager, next"
+            :total="total"
+            :page-size="page.pageSize"
+            v-model:current-page="page.pageNum"
+            @current-change="handlePageChange"
+        />
+      </div>
+
     </el-card>
     <ApplicationDetailModal
         v-if="isDetailModalVisible"
@@ -52,7 +97,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import axios from 'axios';
 import { ElMessage, ElMessageBox } from 'element-plus';
 // 【新增】导入详情弹窗组件
@@ -69,6 +114,20 @@ const applications = ref([]);
 const loading = ref(true);
 const error = ref(null);
 
+// 【【新增：分页和 Tab 状态】】
+const total = ref(0);
+const activeTab = ref('all');
+const page = reactive({
+  pageNum: 1,
+  pageSize: 10,
+});
+const statusMap = {
+  all: null,
+  pending: 0,
+  approved: 1,
+  rejected: 2
+};
+
 // 【修正】直接在顶层定义 fetchAllApplications 方法，并包含完整逻辑
 const fetchAllApplications = async () => {
   loading.value = true;
@@ -76,9 +135,15 @@ const fetchAllApplications = async () => {
   try {
     const token = localStorage.getItem('authToken');
     const response = await axios.get('http://localhost:8080/api/applications', {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { 'Authorization': `Bearer ${token}` },
+      params: {
+        pageNum: page.pageNum,
+        pageSize: page.pageSize,
+        status: statusMap[activeTab.value]
+      }
     });
-    applications.value = response.data;
+    applications.value = response.data.records;
+    total.value = response.data.total;
   } catch (err) {
     console.error("加载所有申请列表失败:", err);
     error.value = '加载申请列表失败，请确认您有管理员权限。';
@@ -86,6 +151,16 @@ const fetchAllApplications = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+// 【【新增：Tab 和分页的处理器】】
+const handleTabChange = (tabName) => {
+  page.pageNum = 1;
+  fetchAllApplications();
+};
+const handlePageChange = (currentPage) => {
+  page.pageNum = currentPage;
+  fetchAllApplications();
 };
 
 // 【修正】直接在顶层定义 handleApproval 方法，并移除重复定义
@@ -187,5 +262,11 @@ onMounted(fetchAllApplications);
   max-width: 1200px;
   margin: 20px auto;
   padding: 20px;
+}
+/* 【【新增：分页样式】】 */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
 }
 </style>

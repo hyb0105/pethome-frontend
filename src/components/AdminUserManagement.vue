@@ -21,20 +21,43 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" width="240">
+        <el-table-column label="操作" width="100" align="center">
           <template #default="scope">
-            <el-button size="small" @click="openUserModal(scope.row)">
-              编辑
-            </el-button>
-            <el-button size="small" type="warning" @click="openPasswordModal(scope.row)">
-              重置密码
-            </el-button>
-            <el-button size="small" type="danger" @click="handleDeleteUser(scope.row)">
-              删除
-            </el-button>
+            <el-dropdown>
+              <el-button :icon="MoreFilled" circle size="small" />
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="openUserModal(scope.row)">
+                    编辑
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="openPasswordModal(scope.row)">
+                    重置密码
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                      divided
+                      @click="handleDeleteUser(scope.row)"
+                      style="color: #F56C6C;"
+                      :disabled="scope.row.role === 1"
+                  >
+                    删除
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
+
+      <div v-if="total > 0" class="pagination-container">
+        <el-pagination
+            background
+            layout="prev, pager, next"
+            :total="total"
+            :page-size="page.pageSize"
+            v-model:current-page="page.pageNum"
+            @current-change="handlePageChange"
+        />
+      </div>
     </el-card>
 
     <UserFormModal
@@ -55,7 +78,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import axios from 'axios';
 // 引入我们下一步要创建的弹窗组件
 import UserFormModal from './UserFormModal.vue';
@@ -63,6 +86,7 @@ import UserFormModal from './UserFormModal.vue';
 import UserPasswordResetModal from './UserPasswordResetModal.vue';
 // 【【修改这一行】】
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { MoreFilled } from '@element-plus/icons-vue';
 
 const users = ref([]);
 const loading = ref(true);
@@ -73,20 +97,38 @@ const selectedUser = ref(null);
 const isPasswordModalOpen = ref(false);
 const selectedUserForPassword = ref(null);
 
+// 【【新增：分页状态】】
+const total = ref(0);
+const page = reactive({
+  pageNum: 1,
+  pageSize: 10,
+});
+
 // 从后端API获取所有用户
 const fetchAllUsers = async () => {
   loading.value = true;
   try {
     const token = localStorage.getItem('authToken');
     const response = await axios.get('http://localhost:8080/api/user/all', {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { 'Authorization': `Bearer ${token}` },
+      params: {
+        pageNum: page.pageNum,
+        pageSize: page.pageSize
+      }
     });
-    users.value = response.data;
+    users.value = response.data.records;
+    total.value = response.data.total;
   } catch (err) {
     ElMessage.error('加载用户列表失败。');
   } finally {
     loading.value = false;
   }
+};
+
+// 【【新增：分页处理器】】
+const handlePageChange = (currentPage) => {
+  page.pageNum = currentPage;
+  fetchAllUsers();
 };
 
 // --- 编辑用户 ---
@@ -175,5 +217,11 @@ onMounted(fetchAllUsers);
   max-width: 1200px;
   margin: 20px auto;
   padding: 20px;
+}
+/* 【【新增：分页样式】】 */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
 }
 </style>

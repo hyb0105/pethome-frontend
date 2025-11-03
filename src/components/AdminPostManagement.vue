@@ -48,6 +48,10 @@
                     <span style="color: #F56C6C;">拒绝</span>
                   </el-dropdown-item>
 
+                  <el-dropdown-item @click="viewPostDetail(scope.row.id)">
+                    查看详情
+                  </el-dropdown-item>
+
                   <el-dropdown-item divided @click="handleDelete(scope.row.id)">
                     <span style="color: #F56C6C;">删除</span>
                   </el-dropdown-item>
@@ -79,7 +83,9 @@ import axios from 'axios';
 import {ElMessage, ElMessageBox} from 'element-plus';
 // 【【修复2：导入 "..." 图标】】
 import {MoreFilled} from '@element-plus/icons-vue';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const loading = ref(true);
 const posts = ref([]);
 const total = ref(0);
@@ -117,6 +123,12 @@ const fetchPosts = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+// 【【【 新增：查看详情的函数 】】】
+const viewPostDetail = (postId) => {
+  // 使用 router 跳转到详情页
+  router.push(`/posts/${postId}`);
 };
 
 // 【【修复1：重命名 handleTabClick 为 handleTabChange】】

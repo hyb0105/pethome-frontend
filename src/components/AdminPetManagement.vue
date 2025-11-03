@@ -8,14 +8,22 @@
         </div>
       </template>
 
+      <el-tabs v-model="activeTab" @tab-change="handleTabChange">
+        <el-tab-pane label="全部" name="all"></el-tab-pane>
+        <el-tab-pane label="待领养" name="available"></el-tab-pane>
+        <el-tab-pane label="已领养" name="adopted"></el-tab-pane>
+        <el-tab-pane label="审核中" name="pending"></el-tab-pane>
+      </el-tabs>
+
       <el-table :data="pets" v-loading="loading" style="width: 100%">
         <template #empty>
-          <el-empty description="系统中还没有任何宠物信息" />
+          <el-empty description="没有找到宠物信息" />
         </template>
         <el-table-column prop="id" label="ID" width="60" />
         <el-table-column prop="name" label="名称" />
         <el-table-column prop="type" label="类型" />
         <el-table-column prop="breed" label="品种" />
+        <el-table-column prop="city" label="城市" />
         <el-table-column label="状态">
           <template #default="scope">
             <el-tag :type="getStatusType(scope.row.status)" disable-transitions>
@@ -23,14 +31,36 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180">
+
+        <el-table-column label="操作" width="100" align="center">
           <template #default="scope">
-            <el-button size="small" @click="openPetModal(scope.row)">编辑</el-button>
-            <el-button size="small" type="danger" @click="deletePet(scope.row.id)">删除</el-button>
+            <el-dropdown>
+              <el-button :icon="MoreFilled" circle size="small" />
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="openPetModal(scope.row)">
+                    编辑
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="deletePet(scope.row.id)" style="color: #F56C6C;">
+                    删除
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
 
+      <div v-if="total > 0" class="pagination-container">
+        <el-pagination
+            background
+            layout="prev, pager, next"
+            :total="total"
+            :page-size="page.pageSize"
+            v-model:current-page="page.pageNum"
+            @current-change="handlePageChange"
+        />
+      </div>
     </el-card>
 
     <PetFormModal
@@ -43,10 +73,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import axios from 'axios';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Plus } from '@element-plus/icons-vue';
+import { Plus, MoreFilled } from '@element-plus/icons-vue';
 import PetFormModal from './PetFormModal.vue';
 
 const pets = ref([]);
@@ -55,6 +85,19 @@ const error = ref(null);
 const isModalOpen = ref(false);
 const selectedPet = ref(null);
 
+const total = ref(0);
+const activeTab = ref('all');
+const page = reactive({
+  pageNum: 1,
+  pageSize: 10,
+});
+const statusMap = {
+  all: null,
+  available: 0,
+  adopted: 1,
+  pending: 2
+};
+
 const fetchAllPets = async () => {
   loading.value = true;
   error.value = null;
@@ -62,9 +105,14 @@ const fetchAllPets = async () => {
     const token = localStorage.getItem('authToken');
     const response = await axios.get('http://localhost:8080/api/pets', {
       headers: { 'Authorization': `Bearer ${token}` },
-      params: { pageNum: 1, pageSize: 200 }
+      params: {
+        pageNum: page.pageNum,
+        pageSize: page.pageSize,
+        status: statusMap[activeTab.value]
+      }
     });
     pets.value = response.data.records;
+    total.value = response.data.total;
   } catch (err) {
     error.value = '加载宠物列表失败。';
     ElMessage.error(error.value);
@@ -124,6 +172,16 @@ const deletePet = async (petId) => {
   }
 };
 
+// 【【新增：Tab 和分页的处理器】】
+const handleTabChange = (tabName) => {
+  page.pageNum = 1;
+  fetchAllPets();
+};
+const handlePageChange = (currentPage) => {
+  page.pageNum = currentPage;
+  fetchAllPets();
+};
+
 const formatStatus = (status) => {
   switch (status) {
     case 0: return '待领养';
@@ -164,6 +222,12 @@ onMounted(fetchAllPets);
   font-size: 0.85em;
   display: inline-block;
   text-align: center;
+}
+/* 【【新增：分页样式】】 */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
 }
 .status-available { background-color: #67c23a; }
 .status-adopted { background-color: #909399; }
