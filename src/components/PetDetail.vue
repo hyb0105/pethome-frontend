@@ -187,8 +187,9 @@ const commentForm = reactive({
   content: ''
 });
 
-// 【【【 新增：获取评论的函数 】】】
-const currentUserId = ref(null);  //获取id
+// 【【【 新增：当前登录用户的ID 】】】
+const currentUserId = ref(null);
+
 const fetchComments = async (petId) => {
   try {
     const token = localStorage.getItem('authToken');
@@ -201,7 +202,6 @@ const fetchComments = async (petId) => {
   }
 };
 
-// 【【【 新增：提交评论的函数 】】】
 const submitComment = async () => {
   if (!commentForm.content || !commentForm.content.trim()) {
     ElMessage.error('评论内容不能为空');
@@ -218,8 +218,8 @@ const submitComment = async () => {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     ElMessage.success('评论发表成功！');
-    commentForm.content = ''; // 清空输入框
-    await fetchComments(pet.value.id); // 重新加载评论列表
+    commentForm.content = '';
+    await fetchComments(pet.value.id);
   } catch (err) {
     ElMessage.error('评论发表失败');
   } finally {
@@ -258,17 +258,34 @@ onMounted(async () => {
     return;
   }
   try {
-    // 【修改】确保请求时带上 Auth Token，即使 GET /api/pets/{id} 是公开的
-    // 因为后端 PetService/PetMapper 可能未来会根据用户角色返回不同信息
     const token = localStorage.getItem('authToken');
+
+    // 【【【 新增：获取当前登录用户ID (这是你缺失的逻辑) 】】】
+    if (token) {
+      try {
+        // 这个 API 调用会返回当前登录用户的信息
+        const profileResponse = await axios.get('http://localhost:8080/api/user/profile', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        // 把获取到的 ID 存起来
+        currentUserId.value = profileResponse.data.id;
+      } catch (err) {
+        console.error("无法获取用户信息 (可能是Token过期)", err);
+        // 即使获取失败，也继续（此时删除按钮将只对 Admin 显示）
+      }
+    }
+
+    // 2. 获取宠物信息
     const response = await axios.get(`http://localhost:8080/api/pets/${petId}`, {
       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
     pet.value = response.data;
-    // 【【修改】】 获取宠物成功后，立即获取评论
+
+    // 3. 获取评论
     if (pet.value) {
       await fetchComments(pet.value.id);
     }
+
   } catch (err) {
     error.value = '无法加载宠物详情。';
     ElMessage.error(error.value);
