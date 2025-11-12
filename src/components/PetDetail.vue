@@ -18,7 +18,6 @@
       <template #default>
         <el-card v-if="pet" class="pet-detail-card-new">
           <h1 class="pet-name">{{ pet.name }}</h1>
-
           <div class="pet-tags-new">
             <el-tag effect="plain" round type="primary">{{ pet.city }}</el-tag>
             <el-tag effect="plain" round>{{ pet.type }} / {{ pet.breed }}</el-tag>
@@ -27,7 +26,6 @@
             <el-tag type="success" effect="plain" round>{{ pet.vaccination }}</el-tag>
             <el-tag v-if="pet.sterilization === 1" type="info" effect="plain" round>已绝育</el-tag>
           </div>
-
           <el-image
               :src="pet.photoUrl || defaultPetImage"
               fit="cover"
@@ -36,19 +34,47 @@
               hide-on-click-modal
               preview-teleported
           />
-
           <div class="description-section">
             <h3>宠物介绍</h3>
             <p class="description-text">{{ pet.description || '暂无详细介绍。' }}</p>
           </div>
-
           <div class="actions-new">
             <el-button v-if="!isAdmin" type="success" size="large" @click="isModalVisible = true">申请领养</el-button>
             <el-button size="large" @click="$router.push('/')">返回主页</el-button>
           </div>
-
         </el-card>
         <el-empty v-else-if="!loading" description="未找到该宠物的信息" />
+
+        <el-card v-if="pet" class="comment-section-card">
+          <h2>评论区</h2>
+
+          <el-form :model="commentForm" ref="commentFormRef" class="comment-form">
+            <el-form-item prop="content">
+              <el-input
+                  v_model="commentForm.content"
+                  type="textarea"
+                  :rows="4"
+                  placeholder="发表一条友善的评论吧..."
+              />
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="submitComment" :loading="isSubmittingComment">
+                发表评论
+              </el-button>
+            </el-form-item>
+          </el-form>
+
+          <el-divider />
+          <div v-if="comments.length > 0" class="comment-list">
+            <div v-for="comment in comments" :key="comment.id" class="comment-item">
+              <span class="comment-author">{{ comment.authorName }}:</span>
+              <p class="comment-content">{{ comment.content }}</p>
+              <span class="comment-time">{{ new Date(comment.createTime).toLocaleString() }}</span>
+            </div>
+          </div>
+          <el-empty v-else description="暂无评论，快来抢沙发吧！" />
+        </el-card>
+
       </template>
     </el-skeleton>
 
@@ -96,7 +122,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch, reactive } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import defaultPetImage from '@/assets/test-cat.jpg';
@@ -128,9 +154,57 @@ const genderText = computed(() => {
   // 根据目标图片调整文字
   return pet.value.gender === 1 ? '公' : '母';
 });
+
 // 【新增】存储用户地址列表
 const userAddresses = ref([]);
 const isFetchingAddresses = ref(false);
+
+// 【【【 新增：评论区相关状态 】】】
+const comments = ref([]);
+const commentFormRef = ref(null);
+const isSubmittingComment = ref(false);
+const commentForm = reactive({
+  content: ''
+});
+
+// 【【【 新增：获取评论的函数 】】】
+const fetchComments = async (petId) => {
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await axios.get(`http://localhost:8080/api/comments/pet/${petId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    comments.value = response.data;
+  } catch (err) {
+    ElMessage.error('加载评论失败');
+  }
+};
+
+// 【【【 新增：提交评论的函数 】】】
+const submitComment = async () => {
+  if (!commentForm.content || !commentForm.content.trim()) {
+    ElMessage.error('评论内容不能为空');
+    return;
+  }
+  isSubmittingComment.value = true;
+  try {
+    const token = localStorage.getItem('authToken');
+    const payload = {
+      petId: pet.value.id,
+      content: commentForm.content
+    };
+    await axios.post('http://localhost:8080/api/comments', payload, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    ElMessage.success('评论发表成功！');
+    commentForm.content = ''; // 清空输入框
+    await fetchComments(pet.value.id); // 重新加载评论列表
+  } catch (err) {
+    ElMessage.error('评论发表失败');
+  } finally {
+    isSubmittingComment.value = false;
+  }
+};
 
 onMounted(async () => {
   const petId = route.params.id;
@@ -147,6 +221,10 @@ onMounted(async () => {
       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
     pet.value = response.data;
+    // 【【修改】】 获取宠物成功后，立即获取评论
+    if (pet.value) {
+      await fetchComments(pet.value.id);
+    }
   } catch (err) {
     error.value = '无法加载宠物详情。';
     ElMessage.error(error.value);
@@ -320,6 +398,36 @@ watch(isModalVisible, (newValue) => {
   width: 100%;
   height: 400px; /* 骨架屏图片高度 */
   margin-bottom: 20px;
+}
+
+.comment-section-card {
+  margin-top: 20px; /* 与上方卡片拉开距离 */
+}
+.comment-form {
+  margin-top: 10px;
+}
+.comment-list {
+  margin-top: 20px;
+}
+.comment-item {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 15px 0;
+}
+.comment-item:last-child {
+  border-bottom: none;
+}
+.comment-author {
+  font-weight: bold;
+  color: #333;
+}
+.comment-content {
+  margin: 8px 0;
+  color: #555;
+  line-height: 1.6;
+}
+.comment-time {
+  font-size: 0.85em;
+  color: #999;
 }
 
 /* 移除旧的特定布局样式 (如果还存在) */

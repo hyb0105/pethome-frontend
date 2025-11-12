@@ -48,13 +48,12 @@
 </template>
 
 <script setup>
-// 【重要修改】我们开始使用 <script setup> 语法，这是Vue3更推荐的写法，代码更简洁
 import { ref, reactive, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import defaultPetImage from '@/assets/test-cat.jpg';
 import { ElMessage } from 'element-plus';
-import { Search } from '@element-plus/icons-vue'; // 导入搜索图标
+import { Search } from '@element-plus/icons-vue';
 
 const router = useRouter();
 
@@ -124,7 +123,6 @@ const resetSearch = () => {
   fetchPets();
 };
 
-// onMounted 是一个新的生命周期钩子，在 <script setup> 中使用，等同于之前的 created
 onMounted(() => {
   fetchPets();
 });
