@@ -51,7 +51,7 @@
           <el-form :model="commentForm" ref="commentFormRef" class="comment-form">
             <el-form-item prop="content">
               <el-input
-                  v_model="commentForm.content"
+                  v-model="commentForm.content"
                   type="textarea"
                   :rows="4"
                   placeholder="发表一条友善的评论吧..."
@@ -66,11 +66,30 @@
 
           <el-divider />
           <div v-if="comments.length > 0" class="comment-list">
+
             <div v-for="comment in comments" :key="comment.id" class="comment-item">
-              <span class="comment-author">{{ comment.authorName }}:</span>
-              <p class="comment-content">{{ comment.content }}</p>
-              <span class="comment-time">{{ new Date(comment.createTime).toLocaleString() }}</span>
+              <el-avatar :src="comment.authorAvatar" :size="40" class="comment-avatar">
+                {{ comment.authorName ? comment.authorName.charAt(0) : '?' }}
+              </el-avatar>
+
+              <div class="comment-body">
+                <span class="comment-author">{{ comment.authorName }}</span>
+                <p class="comment-content">{{ comment.content }}</p>
+
+                <div class="comment-footer">
+                  <span class="comment-time">{{ new Date(comment.createTime).toLocaleString() }}</span>
+                  <el-button
+                      v-if="currentUserId === comment.userId || isAdmin"
+                      type="danger"
+                      :icon="Delete"
+                      @click="handleDeleteComment(comment.id)"
+                      link
+                      class="comment-delete-btn"
+                  />
+                </div>
+              </div>
             </div>
+
           </div>
           <el-empty v-else description="暂无评论，快来抢沙发吧！" />
         </el-card>
@@ -126,7 +145,8 @@ import { ref, onMounted, computed, watch, reactive } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import defaultPetImage from '@/assets/test-cat.jpg';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus'; // 【【新增】】 导入 ElMessageBox
+import { Delete } from '@element-plus/icons-vue'; // 【【新增】】 导入 Delete 图标
 
 const route = useRoute();
 const router = useRouter();
@@ -168,6 +188,7 @@ const commentForm = reactive({
 });
 
 // 【【【 新增：获取评论的函数 】】】
+const currentUserId = ref(null);  //获取id
 const fetchComments = async (petId) => {
   try {
     const token = localStorage.getItem('authToken');
@@ -203,6 +224,29 @@ const submitComment = async () => {
     ElMessage.error('评论发表失败');
   } finally {
     isSubmittingComment.value = false;
+  }
+};
+
+// 【【【 新增：删除评论的函数 】】】
+const handleDeleteComment = async (commentId) => {
+  try {
+    // 1. 确认
+    await ElMessageBox.confirm('确定要删除这条评论吗？', '确认删除', { type: 'warning' });
+
+    // 2. 调用API
+    const token = localStorage.getItem('authToken');
+    await axios.delete(`http://localhost:8080/api/comments/${commentId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    ElMessage.success('评论删除成功！');
+    // 3. 刷新列表
+    await fetchComments(pet.value.id);
+
+  } catch (err) {
+    if (err !== 'cancel') { // 忽略取消操作
+      ElMessage.error(err.response?.data?.message || '删除失败');
+    }
   }
 };
 
@@ -400,21 +444,30 @@ watch(isModalVisible, (newValue) => {
   margin-bottom: 20px;
 }
 
-.comment-section-card {
-  margin-top: 20px; /* 与上方卡片拉开距离 */
-}
-.comment-form {
-  margin-top: 10px;
-}
-.comment-list {
-  margin-top: 20px;
-}
+/* 评论区样式 */
+.comment-section-card { margin-top: 20px; }
+.comment-form { margin-top: 10px; }
+.comment-list { margin-top: 20px; }
+
+/* Flex 布局样式 */
 .comment-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
   border-bottom: 1px solid #f0f0f0;
   padding: 15px 0;
 }
 .comment-item:last-child {
   border-bottom: none;
+}
+.comment-avatar {
+  flex-shrink: 0;
+}
+.comment-body {
+  flex-grow: 1;
+  /* 【【新增】】 改为 flex 布局，为删除按钮做准备 */
+  display: flex;
+  flex-direction: column;
 }
 .comment-author {
   font-weight: bold;
@@ -424,10 +477,22 @@ watch(isModalVisible, (newValue) => {
   margin: 8px 0;
   color: #555;
   line-height: 1.6;
+  flex-grow: 1; /* 占据中间所有空间 */
+}
+
+/* 【【【 新增：评论底部样式 】】】 */
+.comment-footer {
+  display: flex;
+  justify-content: space-between; /* 时间靠左，按钮靠右 */
+  align-items: center;
 }
 .comment-time {
   font-size: 0.85em;
   color: #999;
+}
+.comment-delete-btn {
+  padding: 0; /* 移除 el-button 默认边距 */
+  margin: 0;
 }
 
 /* 移除旧的特定布局样式 (如果还存在) */

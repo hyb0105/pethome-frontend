@@ -23,6 +23,10 @@
       <el-icon><Document /></el-icon>
       <span>帖子管理</span>
     </el-menu-item>
+    <el-menu-item index="/admin/comments">
+      <el-icon><ChatDotRound /></el-icon>
+      <span>评论管理</span>
+    </el-menu-item>
 
     <div class="flex-grow"></div>
     <el-menu-item @click="logout" class="logout-item">
@@ -39,7 +43,8 @@ import {
   Menu as IconMenu,
   Setting,
   User,
-  Document
+  Document,
+  ChatDotRound
 } from '@element-plus/icons-vue'
 
 const route = useRoute();

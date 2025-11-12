@@ -18,6 +18,8 @@ import PostList from './components/PostList.vue';
 import PostDetail from './components/PostDetail.vue';
 import MyPosts from './components/MyPosts.vue'; // 导入新组件
 
+import AdminCommentManagement from './components/AdminCommentManagement.vue';
+
 const routes = [
     {
         path: '/login',
@@ -123,6 +125,14 @@ const routes = [
         path: '/admin/posts',
         name: 'AdminPostManagement',
         component: AdminPostManagement,
+        meta: { requiresAuth: true, requiresAdmin: true }
+    },
+
+    // 【【【 新增路由：评论管理 】】】
+    {
+        path: '/admin/comments',
+        name: 'AdminCommentManagement',
+        component: AdminCommentManagement,
         meta: { requiresAuth: true, requiresAdmin: true }
     },
 ];
