@@ -32,11 +32,11 @@
                 <div class="post-meta">
                   <span>作者: {{ post.authorName }}</span>
                   <div class="meta-stats">
-                    <span class="stat-item">
+                    <span class="meta-stat-item">
                       <el-icon :color="post.likedByCurrentUser ? '#409EFF' : '#888'"><Star /></el-icon>
                       {{ post.likes }}
                     </span>
-                    <span class="stat-item">
+                    <span class="meta-stat-item">
                       <el-icon><View /></el-icon>
                       {{ post.views }}
                     </span>
@@ -73,7 +73,7 @@ import { ref, reactive, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
-import { Search, User, Star, View } from '@element-plus/icons-vue';
+import { Search, User, Star, View } from '@element-plus/icons-vue'; // 确保 Star 和 View 已导入
 import defaultImage from '@/assets/test-cat.jpg';
 
 
@@ -82,16 +82,13 @@ const posts = ref([]);
 const loading = ref(true);
 const error = ref(null);
 const total = ref(0);
-const searchQuery = ref(''); // 【【新增】】 搜索框数据
+const searchQuery = ref('');
 
 
 const page = reactive({
   pageNum: 1,
-  pageSize: 10, // 【【修改】】 按照你的要求，从 5 改为 10
+  pageSize: 10,
 });
-
-// totalPages 已不再需要，分页组件会自动计算
-// const totalPages = computed(() => Math.ceil(total.value / page.pageSize));
 
 const fetchPosts = async () => {
   loading.value = true;
@@ -123,9 +120,8 @@ const handlePageChange = (currentPage) => {
   fetchPosts();
 };
 
-// 【【新增】】 搜索处理
 const handleSearch = () => {
-  page.pageNum = 1; // 搜索时永远回到第一页
+  page.pageNum = 1;
   fetchPosts();
 };
 
@@ -133,14 +129,12 @@ onMounted(fetchPosts);
 </script>
 
 <style scoped>
-/* 【【修改】】 页面加宽 */
+/* ... (大部分样式保持不变) ... */
 .page-container {
-  max-width: 1000px; /* 从 900px 增大到 1000px */
+  max-width: 1000px;
   margin: 20px auto;
   padding: 20px;
 }
-
-/* 【【新增】】 卡片头部 Flex 布局 */
 .card-header-flex {
   display: flex;
   justify-content: space-between;
@@ -149,10 +143,8 @@ onMounted(fetchPosts);
 .search-box {
   display: flex;
   gap: 10px;
-  width: 300px; /* 限制搜索框宽度 */
+  width: 300px;
 }
-
-/* 列表样式 (保持不变) */
 .post-list {
   display: flex;
   flex-direction: column;
@@ -212,7 +204,8 @@ onMounted(fetchPosts);
   align-items: center;
   gap: 12px;
 }
-/* 【【【 新增：为图标和数字添加间距，使其更清晰 】】】 */
+
+/* 【【【 修复：确保 CSS 类名 .meta-stat-item 与 HTML 匹配 】】】 */
 .meta-stat-item {
   display: inline-flex;
   align-items: center;
