@@ -15,10 +15,12 @@
       <template #default>
         <el-card v-if="post" class="post-detail-card">
           <h1 class="post-title">{{ post.title }}</h1>
+
           <div class="post-meta">
             <span>作者: {{ post.authorName }}</span>
             <span>发布于: {{ new Date(post.createTime).toLocaleString() }}</span>
             <el-tag>{{ post.category }}</el-tag>
+            <span><el-icon><View /></el-icon> {{ post.views }}</span>
           </div>
 
           <div class="post-content ql-snow">
@@ -26,8 +28,18 @@
           </div>
 
           <el-divider />
-          <div style="text-align: center; margin-top: 20px;">
-            <el-button @click="$router.go(-1)">返回</el-button>
+
+          <div class="actions-footer">
+            <el-button
+                size="large"
+                :type="post.likedByCurrentUser ? 'primary' : 'default'"
+                :icon="Star"
+                @click="handleToggleLike"
+                :loading="isLiking"
+            >
+              {{ post.likedByCurrentUser ? '已收藏' : '收藏' }} ({{ post.likes }})
+            </el-button>
+            <el-button @click="$router.go(-1)" size="large">返回</el-button>
           </div>
 
         </el-card>
@@ -42,11 +54,44 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router'; // 【【修改】】 导入 useRouter
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
+import { Star, View } from '@element-plus/icons-vue';
 
 const route = useRoute();
 const router = useRouter(); // 【【新增】】 定义 router
 const post = ref(null);
 const loading = ref(true);
+const isLiking = ref(false);
+
+// 【【【 新增：点赞/取消点赞的函数 】】】
+const handleToggleLike = async () => {
+  if (isLiking.value) return;
+  isLiking.value = true;
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      ElMessage.warning('请先登录再操作');
+      router.push('/login');
+      return;
+    }
+
+    await axios.post(`http://localhost:8080/api/posts/${post.value.id}/like`, {}, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    // 本地立即更新 UI
+    if (post.value.likedByCurrentUser) {
+      post.value.likes--;
+    } else {
+      post.value.likes++;
+    }
+    post.value.likedByCurrentUser = !post.value.likedByCurrentUser;
+
+  } catch (err) {
+    ElMessage.error('操作失败，请稍后再试');
+  } finally {
+    isLiking.value = false;
+  }
+};
 
 onMounted(async () => {
   const postId = route.params.id;
@@ -56,8 +101,18 @@ onMounted(async () => {
   }
   try {
     const token = localStorage.getItem('authToken');
+
+    // 【【【 新增：调用 /view API 】】】
+    // (我们只在登录时才记录浏览)
+    if (token) {
+      // 异步调用，"即发即忘"，不需要等待它完成
+      axios.post(`http://localhost:8080/api/posts/${postId}/view`, {}, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).catch(err => console.error("View record failed:", err)); // 记录失败也没关系
+    }
+
+    // 【【修改】】 获取帖子详情 (现在需要 token 来检查点赞状态)
     const response = await axios.get(`http://localhost:8080/api/posts/${postId}`, {
-      // 【【修改】】 确保 token 存在时才发送
       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
     post.value = response.data;
@@ -94,6 +149,11 @@ onMounted(async () => {
   padding-bottom: 15px;
   border-bottom: 1px solid #eee;
 }
+.post-meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
 .meta-skeleton {
   display: flex;
   justify-content: center;
@@ -117,5 +177,13 @@ onMounted(async () => {
   max-width: 100%;
   height: auto;
   border-radius: 8px;
+}
+/* 【【【 新增：底部按钮样式 】】】 */
+.actions-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 20px;
 }
 </style>

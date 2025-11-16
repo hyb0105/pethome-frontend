@@ -24,6 +24,8 @@
         <el-table-column prop="id" label="ID" width="60" />
         <el-table-column prop="title" label="标题" />
         <el-table-column prop="category" label="领域" />
+        <el-table-column prop="views" label="浏览" width="80" />
+        <el-table-column prop="likes" label="收藏" width="80" />
         <el-table-column label="状态">
           <template #default="scope">
             <el-tooltip

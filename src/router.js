@@ -19,6 +19,7 @@ import PostDetail from './components/PostDetail.vue';
 import MyPosts from './components/MyPosts.vue'; // 导入新组件
 
 import AdminCommentManagement from './components/AdminCommentManagement.vue';
+import MyLikedPosts from './components/MyLikedPosts.vue';
 
 const routes = [
     {
@@ -83,6 +84,13 @@ const routes = [
         path: '/profile',
         name: 'UserProfile',
         component: UserProfile,
+        meta: { requiresAuth: true }
+    },
+    // 【【【 新增路由：我赞过的 】】】
+    {
+        path: '/my-likes',
+        name: 'MyLikedPosts',
+        component: MyLikedPosts,
         meta: { requiresAuth: true }
     },
     {

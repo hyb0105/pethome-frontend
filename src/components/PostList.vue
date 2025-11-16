@@ -24,18 +24,26 @@
         <router-link :to="`/posts/${post.id}`" v-for="post in posts" :key="post.id" class="post-card-link">
           <el-card shadow="hover" class="post-card-horizontal">
             <div class="card-content">
-              <el-image
-                  :src="post.coverImageUrl || defaultImage"
-                  fit="cover"
-                  class="post-photo-horizontal"
-              />
+              <el-image :src="post.coverImageUrl || defaultImage" fit="cover" class="post-photo-horizontal" />
               <div class="post-info-horizontal">
                 <h3 class="post-title">{{ post.title }}</h3>
                 <p class="post-summary">{{ post.summary }}</p>
+
                 <div class="post-meta">
                   <span>作者: {{ post.authorName }}</span>
-                  <el-tag size="small">{{ post.category }}</el-tag>
+                  <div class="meta-stats">
+                    <span class="stat-item">
+                      <el-icon :color="post.likedByCurrentUser ? '#409EFF' : '#888'"><Star /></el-icon>
+                      {{ post.likes }}
+                    </span>
+                    <span class="stat-item">
+                      <el-icon><View /></el-icon>
+                      {{ post.views }}
+                    </span>
+                    <el-tag size="small">{{ post.category }}</el-tag>
+                  </div>
                 </div>
+
               </div>
             </div>
           </el-card>
@@ -65,8 +73,9 @@ import { ref, reactive, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
-import { Search } from '@element-plus/icons-vue'; // 【【新增】】 导入搜索图标
+import { Search, User, Star, View } from '@element-plus/icons-vue';
 import defaultImage from '@/assets/test-cat.jpg';
+
 
 const router = useRouter();
 const posts = ref([]);
@@ -74,6 +83,12 @@ const loading = ref(true);
 const error = ref(null);
 const total = ref(0);
 const searchQuery = ref(''); // 【【新增】】 搜索框数据
+
+// 【【【 修复：searchParams 是 reactive 对象，不是 ref 】】】
+const searchParams = reactive({
+  content: '',
+  authorName: ''
+});
 
 const page = reactive({
   pageNum: 1,
@@ -91,11 +106,12 @@ const fetchPosts = async () => {
     const params = {
       pageNum: page.pageNum,
       pageSize: page.pageSize,
-      title: searchQuery.value || null // 【【新增】】 发送搜索关键词
+      title: searchParams.content || null, // 修复：使用 searchParams.content
+      authorName: searchParams.authorName || null // 修复：使用 searchParams.authorName
     };
     const response = await axios.get('http://localhost:8080/api/posts', {
       params,
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
     posts.value = response.data.records;
     total.value = response.data.total;
@@ -196,6 +212,16 @@ onMounted(fetchPosts);
   margin-top: 10px;
   font-size: 0.85em;
   color: #999;
+}
+.meta-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.stat-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px; /* 图标和文字的间距 */
 }
 .pagination-container {
   display: flex;
