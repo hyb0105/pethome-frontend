@@ -84,11 +84,6 @@ const error = ref(null);
 const total = ref(0);
 const searchQuery = ref(''); // 【【新增】】 搜索框数据
 
-// 【【【 修复：searchParams 是 reactive 对象，不是 ref 】】】
-const searchParams = reactive({
-  content: '',
-  authorName: ''
-});
 
 const page = reactive({
   pageNum: 1,
@@ -106,8 +101,7 @@ const fetchPosts = async () => {
     const params = {
       pageNum: page.pageNum,
       pageSize: page.pageSize,
-      title: searchParams.content || null, // 修复：使用 searchParams.content
-      authorName: searchParams.authorName || null // 修复：使用 searchParams.authorName
+      title: searchQuery.value || null
     };
     const response = await axios.get('http://localhost:8080/api/posts', {
       params,
@@ -218,11 +212,13 @@ onMounted(fetchPosts);
   align-items: center;
   gap: 12px;
 }
-.stat-item {
+/* 【【【 新增：为图标和数字添加间距，使其更清晰 】】】 */
+.meta-stat-item {
   display: inline-flex;
   align-items: center;
   gap: 4px; /* 图标和文字的间距 */
 }
+
 .pagination-container {
   display: flex;
   justify-content: center;
