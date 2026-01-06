@@ -145,7 +145,7 @@ const handleSubmit = () => {
 const handlePhotoSuccess = (response) => {
   // 假设服务器返回的数据结构为 { url: '...' }
   // (这与 UserProfile.vue 中的逻辑一致)
-  form.value.photoUrl = response.url;
+  form.value.photoUrl = response;
   ElMessage.success('照片上传成功！');
 };
 
