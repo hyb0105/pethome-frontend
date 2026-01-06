@@ -143,10 +143,15 @@ const handleSubmit = () => {
 
 // 【新增】照片上传成功后的回调
 const handlePhotoSuccess = (response) => {
-  // 假设服务器返回的数据结构为 { url: '...' }
-  // (这与 UserProfile.vue 中的逻辑一致)
-  form.value.photoUrl = response;
-  ElMessage.success('照片上传成功！');
+  // 关键点：后端返回的是 { "url": "..." }，所以必须取 response.url
+  if (response && response.url) {
+    form.value.photoUrl = response.url;
+    ElMessage.success('照片上传成功！');
+  } else {
+    // 如果直接返回了字符串（视你的后端具体实现而定），也可以兼容处理
+    form.value.photoUrl = response;
+    ElMessage.success('照片上传成功！');
+  }
 };
 
 // 【新增】照片上传前的校验
