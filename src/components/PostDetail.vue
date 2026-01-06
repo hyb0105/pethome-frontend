@@ -22,6 +22,9 @@
             <el-tag>{{ post.category }}</el-tag>
             <span><el-icon><View /></el-icon> {{ post.views }}</span>
           </div>
+          <div v-if="post.summary" class="post-summary-box">
+            <strong>摘要：</strong> {{ post.summary }}
+          </div>
 
           <div class="post-content ql-snow">
             <div class="ql-editor" v-html="post.content"></div>
@@ -185,5 +188,16 @@ onMounted(async () => {
   align-items: center;
   gap: 20px;
   margin-top: 20px;
+}
+/* 【新增】 摘要样式 */
+.post-summary-box {
+  background-color: #f9f9fa; /* 浅灰色背景 */
+  border-left: 5px solid #409EFF; /* 左侧蓝色竖条 */
+  padding: 15px 20px;
+  margin: 20px 0; /* 上下留白 */
+  color: #555;
+  font-size: 1.05em;
+  line-height: 1.6;
+  border-radius: 4px;
 }
 </style>

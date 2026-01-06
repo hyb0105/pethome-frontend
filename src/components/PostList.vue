@@ -27,7 +27,7 @@
               <el-image :src="post.coverImageUrl || defaultImage" fit="cover" class="post-photo-horizontal" />
               <div class="post-info-horizontal">
                 <h3 class="post-title">{{ post.title }}</h3>
-                <p class="post-summary">{{ post.summary }}</p>
+                <p class="post-summary">{{ formatSummary(post.summary) }}</p>
 
                 <div class="post-meta">
                   <span>作者: {{ post.authorName }}</span>
@@ -125,6 +125,16 @@ const handleSearch = () => {
   fetchPosts();
 };
 
+// 【新增】处理摘要文字长度
+const formatSummary = (text) => {
+  if (!text) return '暂无摘要';
+  const maxLength = 50; // 限制显示 50 个字，你可以根据需要调整
+  if (text.length > maxLength) {
+    return text.substring(0, maxLength) + '...';
+  }
+  return text;
+};
+
 onMounted(fetchPosts);
 </script>
 
@@ -181,12 +191,16 @@ onMounted(fetchPosts);
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* 修改对应的 CSS */
 .post-summary {
   font-size: 0.9em;
   color: #666;
-  flex-grow: 1;
+  /* flex-grow: 1;  <-- 建议注释掉或删除这行，防止它过度撑开 */
+  margin-bottom: 10px; /* 给下方留点空隙 */
+  height: 45px; /* 给一个大概的高度，容纳3行文字 */
+  line-height: 1.5; /* 设置行高 */
   overflow: hidden;
-  text-overflow: ellipsis;
+  /* 保持 CSS 截断作为双重保障 */
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
