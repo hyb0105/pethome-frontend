@@ -7,6 +7,9 @@
     <div class="sidebar-title">
       PetHome 管理后台
     </div>
+    <el-menu-item index="/admin/dashboard">
+      <el-icon><Odometer /></el-icon> <span>仪表盘</span>
+    </el-menu-item>
     <el-menu-item index="/admin/approvals">
       <el-icon><icon-menu /></el-icon>
       <span>申请审批</span>
@@ -49,7 +52,8 @@ import {
   User,
   Document,
   ChatDotRound,
-  Picture
+  Picture,
+  Odometer
 } from '@element-plus/icons-vue'
 
 const route = useRoute();

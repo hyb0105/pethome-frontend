@@ -19,6 +19,7 @@ import MyPosts from './components/MyPosts.vue'; // 导入新组件
 import AdminCommentManagement from './components/AdminCommentManagement.vue';
 import MyLikedPosts from './components/MyLikedPosts.vue';
 import AdminCarouselManagement from './components/AdminCarouselManagement.vue';
+import AdminDashboard from './components/AdminDashboard.vue';
 
 const routes = [
     {
@@ -108,7 +109,7 @@ const routes = [
     // --- 管理员 ---
     {
         path: '/admin',
-        redirect: '/admin/approvals'
+        redirect: '/admin/dashboard'
     },
     {
         path: '/admin/approvals',
@@ -132,6 +133,12 @@ const routes = [
         path: '/admin/posts',
         name: 'AdminPostManagement',
         component: AdminPostManagement,
+        meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+        path: '/admin/dashboard',
+        name: 'AdminDashboard',
+        component: AdminDashboard,
         meta: { requiresAuth: true, requiresAdmin: true }
     },
 
@@ -163,7 +170,7 @@ router.beforeEach((to, from, next) => {
 
     if (loggedIn && userRole === '1') {
         if (to.path === '/login' || to.path === '/register' || to.path === '/') {
-            next('/admin/approvals');
+            next('/admin/dashboard');
             return;
         }
     }
