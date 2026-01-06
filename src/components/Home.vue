@@ -71,6 +71,7 @@ import { Search } from '@element-plus/icons-vue';
 
 const router = useRouter();
 
+const banners = ref([]);
 const pets = ref([]);
 const loading = ref(true);
 const error = ref(null);
