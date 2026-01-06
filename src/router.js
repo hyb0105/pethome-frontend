@@ -12,14 +12,13 @@ import UserAddress from './components/UserAddress.vue';
 import ChangePassword from './components/ChangePassword.vue';
 import AdminPostManagement from './components/AdminPostManagement.vue';
 import PostCreate from './components/PostCreate.vue';
-
 // 【【新增导入】】
 import PostList from './components/PostList.vue';
 import PostDetail from './components/PostDetail.vue';
 import MyPosts from './components/MyPosts.vue'; // 导入新组件
-
 import AdminCommentManagement from './components/AdminCommentManagement.vue';
 import MyLikedPosts from './components/MyLikedPosts.vue';
+import AdminCarouselManagement from './components/AdminCarouselManagement.vue';
 
 const routes = [
     {
@@ -141,6 +140,13 @@ const routes = [
         path: '/admin/comments',
         name: 'AdminCommentManagement',
         component: AdminCommentManagement,
+        meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    // 【【【 新增路由：轮播图 】】】
+    {
+        path: '/admin/carousels', // 【新增路由】
+        name: 'AdminCarouselManagement',
+        component: AdminCarouselManagement,
         meta: { requiresAuth: true, requiresAdmin: true }
     },
 ];

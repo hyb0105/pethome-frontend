@@ -1,5 +1,19 @@
 <template>
   <div class="home-container">
+
+    <div v-if="banners.length > 0" class="carousel-wrapper">
+      <el-carousel trigger="click" height="400px" :interval="5000">
+        <el-carousel-item v-for="item in banners" :key="item.id">
+          <a :href="item.linkUrl || 'javascript:;'" :class="{ 'no-link': !item.linkUrl }" :target="item.linkUrl ? '_blank' : '_self'">
+            <el-image :src="item.imageUrl" fit="cover" class="banner-image" />
+            <div v-if="item.title" class="banner-title">
+              <h3>{{ item.title }}</h3>
+            </div>
+          </a>
+        </el-carousel-item>
+      </el-carousel>
+    </div>
+
     <el-card class="search-card">
       <div class="search-bar">
         <el-input v-model="searchParams.type" placeholder="类型 (如: 猫)" clearable />
@@ -123,9 +137,28 @@ const resetSearch = () => {
   fetchPets();
 };
 
+// 【【【 新增：获取轮播图的方法 】】】
+const fetchBanners = async () => {
+  try {
+    // 【关键修复】获取本地存储的 Token
+    const token = localStorage.getItem('authToken');
+
+    // 【关键修复】在请求头中携带 Token
+    const res = await axios.get('http://localhost:8080/api/carousels', {
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    });
+
+    banners.value = res.data;
+  } catch (err) {
+    console.error('Banner加载失败', err);
+    // 这里不要写任何导致跳转的代码
+  }
+};
 onMounted(() => {
-  fetchPets();
+  fetchBanners(); // 【【【 调用获取轮播图 】】】
+  fetchPets(); // 你原有的加载宠物
 });
+
 </script>
 
 <style scoped>
@@ -173,5 +206,37 @@ onMounted(() => {
   margin-top: 40px;
   font-size: 1.2rem;
   color: #666;
+}
+
+/* 【【【 新增：轮播图样式 】】】 */
+.carousel-wrapper {
+  margin-bottom: 20px;
+  border-radius: 12px;
+  overflow: hidden; /* 圆角 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.banner-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.banner-title {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+  padding: 20px;
+  color: #fff;
+  text-align: left;
+}
+.banner-title h3 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: normal;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+.no-link {
+  cursor: default;
 }
 </style>

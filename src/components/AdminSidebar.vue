@@ -27,6 +27,10 @@
       <el-icon><ChatDotRound /></el-icon>
       <span>评论管理</span>
     </el-menu-item>
+    <el-menu-item index="/admin/carousels">
+      <el-icon><Picture /></el-icon>
+      <span>轮播图管理</span>
+    </el-menu-item>
 
     <div class="flex-grow"></div>
     <el-menu-item @click="logout" class="logout-item">
@@ -44,7 +48,8 @@ import {
   Setting,
   User,
   Document,
-  ChatDotRound
+  ChatDotRound,
+  Picture
 } from '@element-plus/icons-vue'
 
 const route = useRoute();
