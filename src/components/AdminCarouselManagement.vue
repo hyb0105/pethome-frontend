@@ -20,8 +20,8 @@
             />
           </template>
         </el-table-column>
-        <el-table-column prop="title" label="标题" />
-        <el-table-column prop="linkUrl" label="跳转链接" show-overflow-tooltip />
+        <el-table-column prop="title" label="宠物名称/标题" />
+        <el-table-column prop="linkUrl" label="跳转路径" show-overflow-tooltip />
         <el-table-column prop="sortOrder" label="排序值" width="100" sortable />
 
         <el-table-column label="操作" width="180" align="center">
@@ -33,10 +33,28 @@
       </el-table>
     </el-card>
 
-    <el-dialog v-model="dialogVisible" :title="form.id ? '编辑轮播图' : '新增轮播图'" width="500px">
-      <el-form :model="form" label-width="80px">
+    <el-dialog v-model="dialogVisible" :title="form.id ? '编辑轮播图' : '新增轮播图'" width="550px">
+      <el-form :model="form" label-width="100px">
 
-        <el-form-item label="上传图片" required>
+        <el-form-item label="选择宠物" required>
+          <el-select
+              v-model="selectedPetId"
+              placeholder="请选择待领养的宠物"
+              style="width: 100%"
+              @change="handlePetChange"
+              filterable
+          >
+            <el-option
+                v-for="pet in unadoptedPets"
+                :key="pet.id"
+                :label="pet.name + ' (' + pet.breed + ')'"
+                :value="pet.id"
+            />
+          </el-select>
+          <div class="tip-text">选择后将自动生成跳转链接和标题</div>
+        </el-form-item>
+
+        <el-form-item label="轮播图图片" required>
           <el-upload
               class="avatar-uploader"
               action="http://localhost:8080/api/upload"
@@ -46,17 +64,22 @@
               name="file"
           >
             <img v-if="form.imageUrl" :src="form.imageUrl" class="carousel-preview-img" />
-            <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+            <div v-else class="upload-placeholder">
+              <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
+              <span>点击上传横幅图</span>
+            </div>
           </el-upload>
-          <div class="tip-text">建议尺寸：1200x400，支持 jpg/png</div>
+          <div class="tip-text">建议尺寸：1200x400，您可以手动上传更精美的横幅，或者使用默认宠物照片</div>
         </el-form-item>
 
         <el-form-item label="标题">
-          <el-input v-model="form.title" placeholder="图片标题 (可选)" />
+          <el-input v-model="form.title" placeholder="宠物名称" />
         </el-form-item>
+
         <el-form-item label="跳转链接">
-          <el-input v-model="form.linkUrl" placeholder="点击后跳转的地址 (可选)" />
+          <el-input v-model="form.linkUrl" placeholder="自动生成，例如: /pet/1" disabled />
         </el-form-item>
+
         <el-form-item label="排序值">
           <el-input-number v-model="form.sortOrder" :min="0" placeholder="越小越靠前" />
         </el-form-item>
@@ -72,12 +95,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Plus } from '@element-plus/icons-vue';
 
 const carousels = ref([]);
+const unadoptedPets = ref([]); // 存储待领养宠物列表
+const selectedPetId = ref(null); // 当前选中的宠物ID
+
 const loading = ref(true);
 const dialogVisible = ref(false);
 const form = ref({
@@ -88,10 +114,11 @@ const form = ref({
   sortOrder: 0
 });
 
-const uploadHeaders = {
-  Authorization: `Bearer ${localStorage.getItem('authToken')}`
-};
+const uploadHeaders = computed(() => {
+  return { 'Authorization': `Bearer ${localStorage.getItem('authToken')}` };
+});
 
+// 获取现有的轮播图
 const fetchCarousels = async () => {
   loading.value = true;
   try {
@@ -104,33 +131,75 @@ const fetchCarousels = async () => {
   }
 };
 
+// 【核心修改：获取待领养宠物列表】
+const fetchUnadoptedPets = async () => {
+  try {
+    const token = localStorage.getItem('authToken');
+    // status=0 表示待领养，pageSize=100 确保能拉取到足够多的宠物供选择
+    const response = await axios.get('http://localhost:8080/api/pets', {
+      params: { status: 0, pageSize: 100 },
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    unadoptedPets.value = response.data.records || [];
+  } catch (error) {
+    console.error('加载宠物列表失败', error);
+  }
+};
+
+// 【核心修改：当选择宠物发生变化时】
+const handlePetChange = (val) => {
+  const pet = unadoptedPets.value.find(p => p.id === val);
+  if (pet) {
+    // 1. 自动设置标题
+    form.value.title = pet.name;
+    // 2. 自动设置跳转链接 (前端路由格式)
+    form.value.linkUrl = `/pet/${pet.id}`;
+
+    // 3. 如果当前没有上传图片，且宠物有照片，尝试自动填充 (可选)
+    // 如果管理员想手动上传更清楚的图，这行代码也不会覆盖用户刚刚上传的图
+    if (!form.value.imageUrl && pet.photoUrl) {
+      form.value.imageUrl = pet.photoUrl;
+    }
+  }
+};
+
 const handleAdd = () => {
   form.value = {
     id: null,
     imageUrl: '',
     linkUrl: '',
     title: '',
-    sortOrder: carousels.value.length // 默认排在最后
+    sortOrder: carousels.value.length
   };
+  selectedPetId.value = null; // 重置选择框
   dialogVisible.value = true;
+  fetchUnadoptedPets(); // 打开弹窗时刷新一下宠物列表
 };
 
 const handleEdit = (row) => {
-  form.value = { ...row }; // 复制对象
+  form.value = { ...row };
+  selectedPetId.value = null; // 编辑模式下暂不回显Select，因为比较复杂，用户可以直接改
   dialogVisible.value = true;
+  fetchUnadoptedPets();
 };
 
+// 【关键修复】处理上传成功
 const handleUploadSuccess = (response) => {
-  // 假设后端返回的是图片URL字符串
-  form.value.imageUrl = response;
+  // 后端返回的是 { url: "..." }，所以这里必须取 response.url
+  form.value.imageUrl = response.url;
   ElMessage.success('图片上传成功');
 };
 
 const submitForm = async () => {
   if (!form.value.imageUrl) {
-    ElMessage.warning('请先上传一张图片');
+    ElMessage.warning('请上传轮播图');
     return;
   }
+  if (!form.value.linkUrl) {
+    ElMessage.warning('请选择一个宠物以生成跳转链接');
+    return;
+  }
+
   try {
     const token = localStorage.getItem('authToken');
     await axios.post('http://localhost:8080/api/carousels', form.value, {
@@ -138,7 +207,7 @@ const submitForm = async () => {
     });
     ElMessage.success('保存成功');
     dialogVisible.value = false;
-    fetchCarousels(); // 刷新列表
+    fetchCarousels();
   } catch (error) {
     ElMessage.error('保存失败');
   }
@@ -158,7 +227,10 @@ const handleDelete = async (id) => {
   }
 };
 
-onMounted(fetchCarousels);
+onMounted(() => {
+  fetchCarousels();
+  // 预加载宠物列表，或者在打开弹窗时加载都可以
+});
 </script>
 
 <style scoped>
@@ -179,8 +251,8 @@ onMounted(fetchCarousels);
   position: relative;
   overflow: hidden;
   transition: var(--el-transition-duration-fast);
-  width: 300px;
-  height: 150px;
+  width: 100%;
+  height: 200px; /* 调整为更像Banner的比例 */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -189,9 +261,15 @@ onMounted(fetchCarousels);
 .avatar-uploader:hover {
   border-color: #409EFF;
 }
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #8c939d;
+}
 .avatar-uploader-icon {
   font-size: 28px;
-  color: #8c939d;
+  margin-bottom: 8px;
 }
 .carousel-preview-img {
   width: 100%;
@@ -202,5 +280,6 @@ onMounted(fetchCarousels);
   font-size: 12px;
   color: #999;
   margin-top: 5px;
+  line-height: 1.4;
 }
 </style>
