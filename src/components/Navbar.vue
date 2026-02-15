@@ -15,47 +15,70 @@
 
     <el-menu-item v-if="!isAdmin" index="/my-applications">我的申请</el-menu-item>
 
-    <el-sub-menu index="user-menu">
+    <el-sub-menu v-if="isLoggedIn" index="user-menu">
       <template #title>
-        用户
+        <el-icon><UserFilled /></el-icon> {{ username || '用户' }}
       </template>
       <el-menu-item index="/profile">个人中心</el-menu-item>
-
       <el-menu-item index="/my-posts">我的帖子</el-menu-item>
-      <el-menu-item index="/my-likes">我的收藏</el-menu-item>
+      <el-menu-item index="/my-collections">我的收藏</el-menu-item>
       <el-menu-item index="/addresses">地址管理</el-menu-item>
       <el-menu-item index="/change-password">修改密码</el-menu-item>
       <el-menu-item @click="logout">退出登录</el-menu-item>
     </el-sub-menu>
 
+    <div v-if="!isLoggedIn" class="auth-buttons">
+      <el-button type="primary" link @click="$router.push('/login')">登录</el-button>
+      <el-divider direction="vertical" />
+      <el-button type="primary" @click="$router.push('/register')">注册</el-button>
+    </div>
+
   </el-menu>
 </template>
 
 <script>
+import { UserFilled } from '@element-plus/icons-vue';
+
 export default {
   name: 'AppNavbar',
+  components: { UserFilled },
   data() {
     return {
-      // data中不再需要 activeIndex，因为 ElMenu 配合 :router="true" 会自动高亮
+      isLoggedIn: false,
+      username: '',
+      isAdmin: false
     };
   },
   computed: {
-    isAdmin() {
-      return localStorage.getItem('userRole') === '1';
-    },
-    // 计算属性，确保导航栏能正确高亮当前页面
     activeIndex() {
-      // 【【修复】】 确保 /posts/create 和 /my-posts 都能高亮 "养宠经验"
       if (this.$route.path.startsWith('/posts') || this.$route.path.startsWith('/my-posts')) {
         return '/posts';
       }
       return this.$route.path;
     }
   },
+  watch: {
+    // 监听路由变化，实时更新登录状态 (因为 localStorage 不是响应式的)
+    $route() {
+      this.checkLoginStatus();
+    }
+  },
+  mounted() {
+    this.checkLoginStatus();
+  },
   methods: {
+    checkLoginStatus() {
+      const token = localStorage.getItem('authToken');
+      this.isLoggedIn = !!token;
+      this.isAdmin = localStorage.getItem('userRole') === '1';
+      // 假设你在登录时存了 username，如果没有存，这里可以不显示名字
+      this.username = localStorage.getItem('username') || '用户';
+    },
     logout() {
       localStorage.removeItem('authToken');
       localStorage.removeItem('userRole');
+      localStorage.removeItem('username');
+      this.isLoggedIn = false;
       this.$router.push('/login');
     }
   }
@@ -64,17 +87,24 @@ export default {
 
 <style scoped>
 .navbar {
-  position: fixed; /* 固定在页面顶部 */
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   z-index: 100;
+  display: flex;
+  align-items: center; /* 垂直居中 */
 }
 .navbar-brand {
   font-size: 1.5rem;
   font-weight: bold;
 }
 .flex-grow {
-  flex-grow: 1; /* 占据所有剩余空间，将右侧菜单推到最右 */
+  flex-grow: 1;
+}
+.auth-buttons {
+  display: flex;
+  align-items: center;
+  margin-right: 20px; /* 离右边稍微远一点 */
 }
 </style>

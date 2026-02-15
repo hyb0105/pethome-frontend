@@ -32,14 +32,16 @@
                 <div class="post-meta">
                   <span>作者: {{ post.authorName }}</span>
                   <div class="meta-stats">
+                  <span class="meta-stat-item" :class="{ 'is-collected': post.likedByCurrentUser }">
+                    <el-icon v-if="post.likedByCurrentUser" color="#E6A23C"><StarFilled /></el-icon>
+                    <el-icon v-else><Star /></el-icon>
+                    {{ post.likes }} 收藏
+                  </span>
+
                     <span class="meta-stat-item">
-                      <el-icon :color="post.likedByCurrentUser ? '#409EFF' : '#888'"><Star /></el-icon>
-                      {{ post.likes }}
-                    </span>
-                    <span class="meta-stat-item">
-                      <el-icon><View /></el-icon>
-                      {{ post.views }}
-                    </span>
+                    <el-icon><View /></el-icon>
+                    {{ post.views }}
+                  </span>
                     <el-tag size="small">{{ post.category }}</el-tag>
                   </div>
                 </div>
@@ -69,12 +71,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
-import { Search, User, Star, View } from '@element-plus/icons-vue'; // 确保 Star 和 View 已导入
+import { Search, View, Star, StarFilled } from '@element-plus/icons-vue';
 import defaultImage from '@/assets/test-cat.jpg';
+
 
 
 const router = useRouter();
@@ -237,4 +240,10 @@ onMounted(fetchPosts);
   font-size: 1.2rem;
   color: #666;
 }
+/* 给收藏加个颜色样式 */
+.is-collected {
+  color: #E6A23C; /* 橙色代表收藏 */
+  font-weight: bold;
+}
+
 </style>

@@ -36,20 +36,20 @@ const routes = [
         path: '/',
         name: 'Home',
         component: Home,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: false }
     },
     // --- 帖子路由 ---
     {
         path: '/posts',
         name: 'PostList',
         component: PostList,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: false }
     },
     {
         path: '/posts/:id',
         name: 'PostDetail',
         component: PostDetail,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: false }
     },
     {
         path: '/posts/create',
@@ -70,7 +70,7 @@ const routes = [
         path: '/pet/:id',
         name: 'PetDetail',
         component: PetDetail,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: false }
     },
     {
         path: '/my-applications',
@@ -86,10 +86,10 @@ const routes = [
         component: UserProfile,
         meta: { requiresAuth: true }
     },
-    // 【【【 新增路由：我赞过的 】】】
+    // 【【【 新增路由：我收藏的 】】】
     {
-        path: '/my-likes',
-        name: 'MyLikedPosts',
+        path: '/my-collections',
+        name: 'MyCollectedPosts',
         component: MyLikedPosts,
         meta: { requiresAuth: true }
     },
@@ -169,8 +169,8 @@ router.beforeEach((to, from, next) => {
     const userRole = localStorage.getItem('userRole');
 
     if (loggedIn && userRole === '1') {
-        if (to.path === '/login' || to.path === '/register' || to.path === '/') {
-            next('/admin/dashboard');
+        if (to.path === '/login' || to.path === '/register') {
+            next('/admin/approvals');
             return;
         }
     }
