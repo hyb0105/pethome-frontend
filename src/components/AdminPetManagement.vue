@@ -12,7 +12,7 @@
         <el-tab-pane label="全部" name="all"></el-tab-pane>
         <el-tab-pane label="待领养" name="available"></el-tab-pane>
         <el-tab-pane label="已领养" name="adopted"></el-tab-pane>
-        <el-tab-pane label="审核中" name="pending"></el-tab-pane>
+
       </el-tabs>
 
       <el-table :data="pets" v-loading="loading" style="width: 100%">

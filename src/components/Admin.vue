@@ -52,20 +52,6 @@
                     <span style="color: #F56C6C;">拒绝</span>
                   </el-dropdown-item>
 
-                  <el-dropdown-item
-                      v-if="scope.row.status === 1"
-                      @click="handleApproval(scope.row.id, 2)"
-                  >
-                    <span style="color: #F56C6C;">改为拒绝</span>
-                  </el-dropdown-item>
-
-                  <el-dropdown-item
-                      v-if="scope.row.status === 2"
-                      @click="handleApproval(scope.row.id, 1)"
-                  >
-                    <span style="color: #67C23A;">改为批准</span>
-                  </el-dropdown-item>
-
                   <el-dropdown-item divided @click="openDetailModal(scope.row.id)">
                     查看详情
                   </el-dropdown-item>

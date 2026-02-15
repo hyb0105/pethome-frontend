@@ -68,9 +68,11 @@
       </el-descriptions>
 
     </div>
-    <template #footer>
-      <el-button @click="$emit('close')">关闭</el-button>
-    </template>
+    <span class="dialog-footer">
+
+
+        <el-button @click="$emit('close')">关闭</el-button>
+      </span>
   </el-dialog>
 </template>
 
