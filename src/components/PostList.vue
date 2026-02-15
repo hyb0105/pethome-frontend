@@ -32,12 +32,16 @@
                 <div class="post-meta">
                   <span>作者: {{ post.authorName }}</span>
                   <div class="meta-stats">
-                  <span class="meta-stat-item" :class="{ 'is-collected': post.likedByCurrentUser }">
+
+                  <span
+                      class="meta-stat-item interact-btn"
+                      :class="{ 'is-collected': post.likedByCurrentUser }"
+                      @click.prevent="handleToggleLike(post)"
+                  >
                     <el-icon v-if="post.likedByCurrentUser" color="#E6A23C"><StarFilled /></el-icon>
                     <el-icon v-else><Star /></el-icon>
                     {{ post.likes }} 收藏
                   </span>
-
                     <span class="meta-stat-item">
                     <el-icon><View /></el-icon>
                     {{ post.views }}
@@ -128,6 +132,39 @@ const handleSearch = () => {
   fetchPosts();
 };
 
+const handleToggleLike = async (post) => {
+  const token = localStorage.getItem('authToken');
+
+  // 1. 如果没登录，提示并跳转登录，避免 401 报错
+  if (!token) {
+    ElMessage.warning('请先登录后收藏');
+    router.push('/login');
+    return;
+  }
+
+  try {
+    // 【修改点】：你后端改成了 /collect，这里必须同步修改！
+    // 之前是: .../like
+    // 现在改: .../collect
+    await axios.post(`http://localhost:8080/api/posts/${post.id}/collect`, {}, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    // 3. 成功后更新前端状态，无需刷新页面
+    post.likedByCurrentUser = !post.likedByCurrentUser;
+    post.likes += post.likedByCurrentUser ? 1 : -1;
+
+    ElMessage.success(post.likedByCurrentUser ? '收藏成功' : '已取消收藏');
+
+  } catch (err) {
+    if (err.response && err.response.status === 401) {
+      ElMessage.error('登录已过期，请重新登录');
+      router.push('/login');
+    } else {
+      ElMessage.error('操作失败');
+    }
+  }
+};
 // 【新增】处理摘要文字长度
 const formatSummary = (text) => {
   if (!text) return '暂无摘要';
