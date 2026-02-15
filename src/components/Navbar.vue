@@ -79,7 +79,9 @@ export default {
       localStorage.removeItem('userRole');
       localStorage.removeItem('username');
       this.isLoggedIn = false;
-      this.$router.push('/login');
+      this.$router.push('/');
+
+
     }
   }
 };

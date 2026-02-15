@@ -1,44 +1,44 @@
 import { createRouter, createWebHistory } from 'vue-router';
+
+// --- 基础组件 ---
 import Login from './components/Login.vue';
+import Register from './components/Register.vue';
 import Home from './components/Home.vue';
+import Navbar from './components/Navbar.vue';
+
+// --- 用户业务组件 ---
 import PetDetail from './components/PetDetail.vue';
 import MyApplications from './components/MyApplications.vue';
-import Admin from './components/Admin.vue';
-import AdminPetManagement from './components/AdminPetManagement.vue';
-import Register from './components/Register.vue';
 import UserProfile from './components/UserProfile.vue';
-import AdminUserManagement from './components/AdminUserManagement.vue';
 import UserAddress from './components/UserAddress.vue';
 import ChangePassword from './components/ChangePassword.vue';
-import AdminPostManagement from './components/AdminPostManagement.vue';
-import PostCreate from './components/PostCreate.vue';
-// 【【新增导入】】
+
+// --- 社区业务组件 ---
 import PostList from './components/PostList.vue';
 import PostDetail from './components/PostDetail.vue';
-import MyPosts from './components/MyPosts.vue'; // 导入新组件
-import AdminCommentManagement from './components/AdminCommentManagement.vue';
-import MyLikedPosts from './components/MyLikedPosts.vue';
-import AdminCarouselManagement from './components/AdminCarouselManagement.vue';
+import PostCreate from './components/PostCreate.vue';
+import MyPosts from './components/MyPosts.vue';
+import MyLikedPosts from './components/MyLikedPosts.vue'; // 这里依然指向收藏页组件
+
+// --- 管理员组件 ---
+import Admin from './components/Admin.vue';
 import AdminDashboard from './components/AdminDashboard.vue';
+import AdminPetManagement from './components/AdminPetManagement.vue';
+import AdminUserManagement from './components/AdminUserManagement.vue';
+import AdminPostManagement from './components/AdminPostManagement.vue';
+import AdminCommentManagement from './components/AdminCommentManagement.vue';
+import AdminCarouselManagement from './components/AdminCarouselManagement.vue';
 
 const routes = [
-    {
-        path: '/login',
-        name: 'Login',
-        component: Login
-    },
-    {
-        path: '/register',
-        name: 'Register',
-        component: Register
-    },
+    { path: '/login', name: 'Login', component: Login },
+    { path: '/register', name: 'Register', component: Register },
     {
         path: '/',
         name: 'Home',
         component: Home,
         meta: { requiresAuth: false }
     },
-    // --- 帖子路由 ---
+    // --- 社区/经验分享路由 ---
     {
         path: '/posts',
         name: 'PostList',
@@ -57,11 +57,16 @@ const routes = [
         component: PostCreate,
         meta: { requiresAuth: true }
     },
-    // 【【新增路由：我的帖子】】
     {
         path: '/my-posts',
         name: 'MyPosts',
         component: MyPosts,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/my-collections',
+        name: 'MyCollectedPosts',
+        component: MyLikedPosts,
         meta: { requiresAuth: true }
     },
 
@@ -86,13 +91,6 @@ const routes = [
         component: UserProfile,
         meta: { requiresAuth: true }
     },
-    // 【【【 新增路由：我收藏的 】】】
-    {
-        path: '/my-collections',
-        name: 'MyCollectedPosts',
-        component: MyLikedPosts,
-        meta: { requiresAuth: true }
-    },
     {
         path: '/addresses',
         name: 'UserAddresses',
@@ -106,10 +104,16 @@ const routes = [
         meta: { requiresAuth: true }
     },
 
-    // --- 管理员 ---
+    // --- 管理端路由 ---
     {
         path: '/admin',
         redirect: '/admin/dashboard'
+    },
+    {
+        path: '/admin/dashboard',
+        name: 'AdminDashboard',
+        component: AdminDashboard,
+        meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
         path: '/admin/approvals',
@@ -136,22 +140,13 @@ const routes = [
         meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
-        path: '/admin/dashboard',
-        name: 'AdminDashboard',
-        component: AdminDashboard,
-        meta: { requiresAuth: true, requiresAdmin: true }
-    },
-
-    // 【【【 新增路由：评论管理 】】】
-    {
         path: '/admin/comments',
         name: 'AdminCommentManagement',
         component: AdminCommentManagement,
         meta: { requiresAuth: true, requiresAdmin: true }
     },
-    // 【【【 新增路由：轮播图 】】】
     {
-        path: '/admin/carousels', // 【新增路由】
+        path: '/admin/carousels',
         name: 'AdminCarouselManagement',
         component: AdminCarouselManagement,
         meta: { requiresAuth: true, requiresAdmin: true }
@@ -163,31 +158,41 @@ const router = createRouter({
     routes
 });
 
-// 路由守卫 (保持不变)
+// 路由守卫
 router.beforeEach((to, from, next) => {
-    const loggedIn = localStorage.getItem('authToken');
-    const userRole = localStorage.getItem('userRole');
+    const token = localStorage.getItem('authToken');
 
-    if (loggedIn && userRole === '1') {
-        if (to.path === '/login' || to.path === '/register') {
-            next('/admin/approvals');
-            return;
+    // 1. 如果去的是首页、注册页、或者明确标记为不需要认证的页面，直接放行
+    if (to.path === '/' || to.path === '/register' || to.meta.requiresAuth === false) {
+        next();
+        return;
+    }
+
+    // 2. 如果去的是登录页
+    if (to.path === '/login') {
+        if (token) {
+            next('/'); // 已登录还想去登录页？送回首页
+        } else {
+            next();    // 没登录，允许去登录
         }
+        return;
     }
-    if (loggedIn && userRole !== '1') {
-        if (to.path === '/login' || to.path === '/register') {
-            next('/');
-            return;
+
+    // 3. 需要认证的页面
+    if (to.matched.some(record => record.meta.requiresAuth)) {
+        if (!token) {
+            next('/login'); // 没登录，踢去登录页
+        } else {
+            // 检查管理员权限
+            const userRole = localStorage.getItem('userRole');
+            if (to.matched.some(record => record.meta.requiresAdmin) && userRole !== '1') {
+                alert('权限不足');
+                next('/');
+            } else {
+                next();
+            }
         }
-    }
-    if (to.matched.some(record => record.meta.requiresAuth) && !loggedIn) {
-        next('/login');
-    }
-    else if (to.matched.some(record => record.meta.requiresAdmin) && userRole !== '1') {
-        alert('您没有权限访问此页面！');
-        next('/');
-    }
-    else {
+    } else {
         next();
     }
 });
