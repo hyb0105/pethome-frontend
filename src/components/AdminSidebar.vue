@@ -5,7 +5,7 @@
       :router="true"
   >
     <div class="sidebar-title">
-      PetHome 管理后台
+     宠物领养系统-后台
     </div>
     <el-menu-item index="/admin/dashboard">
       <el-icon><Odometer /></el-icon> <span>仪表盘</span>

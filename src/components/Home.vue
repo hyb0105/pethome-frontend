@@ -95,10 +95,7 @@ const fetchPets = async () => {
   error.value = null;
   try {
     const token = localStorage.getItem('authToken');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
+
     const params = {
       pageNum: page.pageNum,
       pageSize: page.pageSize,
@@ -106,15 +103,18 @@ const fetchPets = async () => {
       breed: searchParams.breed || null,
       city: searchParams.city || null,
     };
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
     const response = await axios.get('http://localhost:8080/api/pets', {
       params,
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: headers
     });
     pets.value = response.data.records;
     total.value = response.data.total;
   } catch (err) {
-    error.value = '无法加载宠物列表，请稍后再试。';
-    ElMessage.error(error.value);
+    // 可选：如果是因为 401 (未登录) 导致的错误，可以不显示错误提示，或者提示“登录后查看更多”
+    console.error(err);
+    // error.value = '无法加载宠物列表...'; // 视情况决定是否显示错误
   } finally {
     loading.value = false;
   }

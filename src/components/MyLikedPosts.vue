@@ -129,4 +129,10 @@ onMounted(fetchCollectedPosts);
   align-items: center;
   gap: 4px;
 }
+
+.pagination-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
 </style>

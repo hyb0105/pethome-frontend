@@ -5,7 +5,7 @@
       mode="horizontal"
       :router="true"
       :ellipsis="false" >
-    <el-menu-item index="/" class="navbar-brand">PetHome</el-menu-item>
+    <el-menu-item index="/" class="navbar-brand">宠物领养系统</el-menu-item>
 
     <div class="flex-grow" />
 

@@ -63,7 +63,7 @@
         </div>
       </template>
       <div class="welcome-content">
-        <p>欢迎管理员进入 PetHome 后台管理系统。</p>
+        <p>欢迎管理员进入宠物领养后台管理系统。</p>
         <p>请及时处理 <strong style="color: #F56C6C;">{{ stats.pendingApplications }}</strong> 条新的领养申请。</p>
       </div>
     </el-card>
