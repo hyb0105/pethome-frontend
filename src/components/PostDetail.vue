@@ -65,7 +65,7 @@ const post = ref(null);
 const loading = ref(true);
 const isLiking = ref(false);
 
-// 【【【 新增：点赞/取消点赞的函数 】】】
+// 【【【 新增：收藏的函数 】】】
 const handleToggleLike = async () => {
   if (isLiking.value) return;
   isLiking.value = true;
@@ -125,6 +125,8 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+
 </script>
 
 <style scoped>

@@ -40,7 +40,10 @@
           </div>
           <div class="actions-new">
             <el-button v-if="!isAdmin" type="success" size="large" @click="isModalVisible = true">申请领养</el-button>
-            <el-button size="large" @click="$router.push('/')">返回主页</el-button>
+
+            <el-button size="large" @click="goBack">
+              {{ route.query.from === 'admin' ? '返回管理页' : '返回主页' }}
+            </el-button>
           </div>
         </el-card>
         <el-empty v-else-if="!loading" description="未找到该宠物的信息" />
@@ -167,6 +170,19 @@ const applicationForm = ref({
 const isAdmin = computed(() => {
   return localStorage.getItem('userRole') === '1';
 });
+
+// **
+// * 【新增】处理返回逻辑
+// * 如果 URL 参数中包含 from=admin，则跳回后台评论管理
+// * 否则默认跳回前台主页
+// */
+const goBack = () => {
+  if (route.query.from === 'admin') {
+    router.push('/admin/comments');
+  } else {
+    router.push('/');
+  }
+};
 
 // 【新增】计算属性用于显示性别文字
 const genderText = computed(() => {

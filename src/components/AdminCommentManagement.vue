@@ -129,7 +129,10 @@ const handlePageChange = (currentPage) => {
 
 // 查看按钮：跳转到宠物详情页
 const viewPet = (petId) => {
-  router.push(`/pet/${petId}`);
+  router.push({
+    path: `/pet/${petId}`,
+    query: { from: 'admin' }
+  });
 };
 
 const handleDelete = async (commentId) => {
