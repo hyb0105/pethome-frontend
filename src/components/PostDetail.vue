@@ -77,7 +77,7 @@ const handleToggleLike = async () => {
       return;
     }
 
-    await axios.post(`http://localhost:8080/api/posts/${post.value.id}/like`, {}, {
+    await axios.post(`http://localhost:8080/api/posts/${post.value.id}/collect`, {}, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
