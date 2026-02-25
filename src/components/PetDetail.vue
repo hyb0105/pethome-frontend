@@ -39,7 +39,7 @@
             <p class="description-text">{{ pet.description || '暂无详细介绍。' }}</p>
           </div>
           <div class="actions-new">
-            <el-button v-if="!isAdmin" type="success" size="large" @click="isModalVisible = true">申请领养</el-button>
+            <el-button v-if="!isAdmin" type="success" size="large" @click="handleApplyClick">申请领养</el-button>
 
             <el-button size="large" @click="goBack">
               {{ route.query.from === 'admin' ? '返回管理页' : '返回主页' }}
@@ -209,16 +209,28 @@ const currentUserId = ref(null);
 const fetchComments = async (petId) => {
   try {
     const token = localStorage.getItem('authToken');
+    // 如果有 token 才携带认证头，没有的话就发普通请求
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
     const response = await axios.get(`http://localhost:8080/api/comments/pet/${petId}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: headers
     });
     comments.value = response.data;
   } catch (err) {
-    ElMessage.error('加载评论失败');
+    console.error("加载评论失败", err);
+    ElMessage.error('加载评论失败，请稍后重试');
   }
 };
 
 const submitComment = async () => {
+  // 【新增】拦截未登录用户发评论
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    ElMessage.warning('请先登录后再发表评论');
+    router.push('/login');
+    return;
+  }
+
   if (!commentForm.content || !commentForm.content.trim()) {
     ElMessage.error('评论内容不能为空');
     return;
@@ -346,6 +358,19 @@ const submitApplication = async () => {
   } finally {
     isSubmitting.value = false;
   }
+};
+
+// 【新增】点击申请领养时的拦截逻辑
+const handleApplyClick = () => {
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    // 如果未登录，提示并跳转到登录页
+    ElMessage.warning('请先登录后再申请领养');
+    router.push('/login');
+    return;
+  }
+  // 如果已登录，正常打开弹窗
+  isModalVisible.value = true;
 };
 
 // 【新增】获取用户地址的方法
