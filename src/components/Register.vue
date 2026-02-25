@@ -3,7 +3,7 @@
     <el-card class="register-card">
       <template #header>
         <div class="card-header">
-          <h2>注册 PetHome 账号</h2>
+          <h2>注册账号</h2>
         </div>
       </template>
 

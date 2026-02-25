@@ -3,7 +3,7 @@
     <el-card class="login-card">
       <template #header>
         <div class="card-header">
-          <h2>登录 PetHome</h2>
+          <h2>登录系统</h2>
         </div>
       </template>
 
