@@ -26,6 +26,9 @@
             <el-tag type="success" effect="plain" round>{{ pet.vaccination }}</el-tag>
             <el-tag v-if="pet.sterilization === 1" type="info" effect="plain" round>已绝育</el-tag>
           </div>
+          <div class="pet-meta">
+            <span>发布于: {{ new Date(pet.createTime).toLocaleString() }}</span>
+          </div>
           <el-image
               :src="pet.photoUrl || defaultPetImage"
               fit="cover"
@@ -35,8 +38,17 @@
               preview-teleported
           />
           <div class="description-section">
-            <h3>宠物介绍</h3>
-            <p class="description-text">{{ pet.description || '暂无详细介绍。' }}</p>
+            <h3>宠物详情</h3>
+
+            <div class="detail-row" v-if="pet.healthStatus">
+              <span class="detail-label">健康状况：</span>
+              <span class="detail-content">{{ pet.healthStatus }}</span>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label">宠物介绍：</span>
+              <span class="detail-content">{{ pet.description || '暂无详细介绍。' }}</span>
+            </div>
           </div>
           <div class="actions-new">
             <el-button v-if="!isAdmin" type="success" size="large" @click="handleApplyClick">申请领养</el-button>
@@ -464,16 +476,34 @@ watch(isModalVisible, (newValue) => {
 
 /* 描述区域 */
 .description-section h3 {
-  margin-bottom: 10px;
-  border-bottom: 1px solid #eee; /* 添加下划线 */
-  padding-bottom: 5px;
-  font-size: 1.2em;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 10px;
+  font-size: 1.3em;
+  color: #333;
 }
 
-.description-text {
-  color: #555; /* 调整文字颜色 */
-  line-height: 1.8; /* 增大行高 */
-  text-indent: 2em; /* 首行缩进 */
+/* 【新增】详情行布局，确保护眼且排版整齐 */
+.detail-row {
+  display: flex;
+  margin-bottom: 15px;
+  line-height: 1.8;
+  font-size: 1.05em;
+}
+
+/* 左侧标题加粗 */
+.detail-label {
+  font-weight: bold;
+  color: #333;
+  width: 90px; /* 固定宽度，保证上下对齐 */
+  flex-shrink: 0; /* 防止标题被挤压 */
+}
+
+/* 右侧内容文字 */
+.detail-content {
+  color: #555;
+  flex-grow: 1; /* 占据剩余的所有空间 */
+  white-space: pre-wrap; /* 保留后端传过来的换行符，让长段落更好看 */
 }
 
 /* 操作按钮区域 */
@@ -551,6 +581,26 @@ watch(isModalVisible, (newValue) => {
 .comment-delete-btn {
   padding: 0; /* 移除 el-button 默认边距 */
   margin: 0;
+}
+
+/* 【【新增】】完全复刻帖子详情的 meta 样式 */
+.pet-meta {
+  display: flex;
+  justify-content: center; /* 保证水平居中 */
+  align-items: center;
+  gap: 20px;
+  color: #888; /* 淡淡的灰色 */
+  font-size: 0.9em;
+  margin-top: -10px; /* 把 meta 和上面的标签稍微拉近一点 */
+  margin-bottom: 20px; /* 和下方的图片拉开距离 */
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee; /* 如果你想要下面有一条灰色的分割线，可以把这行注释打开 */
+}
+
+.pet-meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
 /* 移除旧的特定布局样式 (如果还存在) */
