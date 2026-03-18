@@ -20,7 +20,7 @@
         </el-descriptions-item>
         <el-descriptions-item label="申请时间">{{ new Date(applicationData.applicationTime).toLocaleString() }}</el-descriptions-item>
 
-        <el-descriptions-item label="管理员回复" v-if="applicationData.status === 2 && applicationData.rejectionReason">
+        <el-descriptions-item label="拒绝理由" v-if="applicationData.status === 2 && applicationData.rejectionReason">
           <span style="color: red;">{{ applicationData.rejectionReason }}</span>
         </el-descriptions-item>
 

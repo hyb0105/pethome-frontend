@@ -8,15 +8,15 @@
      宠物领养系统-后台
     </div>
     <el-menu-item index="/admin/dashboard">
-      <el-icon><Odometer /></el-icon> <span>仪表盘</span>
+      <el-icon><Odometer /></el-icon> <span>管理员首页</span>
     </el-menu-item>
     <el-menu-item index="/admin/approvals">
       <el-icon><icon-menu /></el-icon>
-      <span>申请审批</span>
+      <span>宠物申请审批管理</span>
     </el-menu-item>
     <el-menu-item index="/admin/pets">
       <el-icon><setting /></el-icon>
-      <span>宠物管理</span>
+      <span>宠物发布管理</span>
     </el-menu-item>
     <el-menu-item index="/admin/users">
       <el-icon><User /></el-icon>
@@ -24,7 +24,7 @@
     </el-menu-item>
     <el-menu-item index="/admin/posts">
       <el-icon><Document /></el-icon>
-      <span>帖子管理</span>
+      <span>养宠经验帖子管理</span>
     </el-menu-item>
     <el-menu-item index="/admin/comments">
       <el-icon><ChatDotRound /></el-icon>
