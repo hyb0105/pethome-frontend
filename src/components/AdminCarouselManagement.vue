@@ -155,10 +155,15 @@ const handlePetChange = (val) => {
     // 2. 自动设置跳转链接 (前端路由格式)
     form.value.linkUrl = `/pet/${pet.id}`;
 
-    // 3. 如果当前没有上传图片，且宠物有照片，尝试自动填充 (可选)
-    // 如果管理员想手动上传更清楚的图，这行代码也不会覆盖用户刚刚上传的图
-    if (!form.value.imageUrl && pet.photoUrl) {
+    // 3. 【修复BUG】强制将轮播图的图片更新为当前选中的宠物照片！
+    // 💡注意：请确保你的宠物表里，图片的字段名确实叫 photoUrl。
+    // 如果你后端返回的宠物图片字段叫 photo、avatar 或 imageUrl，请把下面的 pet.photoUrl 改成对应的名字！
+    if (pet.photoUrl) {
       form.value.imageUrl = pet.photoUrl;
+    } else if (pet.photo) { // 兼容一下可能叫 photo
+      form.value.imageUrl = pet.photo;
+    } else if (pet.imageUrl) { // 兼容一下可能叫 imageUrl
+      form.value.imageUrl = pet.imageUrl;
     }
   }
 };
